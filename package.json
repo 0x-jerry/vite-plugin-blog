@@ -1,0 +1,13 @@
+{
+  "name": "v-blog-system",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0x-jerry/v-blog-system.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/0x-jerry/v-blog-system/issues"
+  },
+  "homepage": "https://github.com/0x-jerry/v-blog-system#readme"
+}
