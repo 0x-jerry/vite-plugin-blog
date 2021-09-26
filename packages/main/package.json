@@ -5,9 +5,17 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@v-blog/render": "workspace:*"
+    "@koa/router": "^10.1.1",
+    "@v-blog/render": "workspace:*",
+    "@v-blog/shared": "workspace:*",
+    "koa": "^2.13.3",
+    "koa-compress": "^5.1.0"
   },
   "devDependencies": {
+    "@types/koa": "^2.13.4",
+    "@types/koa-compress": "^4.0.3",
+    "@types/koa__router": "^8.0.8",
+    "@types/node": "^16.10.1",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   }

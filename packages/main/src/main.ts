@@ -1,3 +1,5 @@
-import { add } from '@v-blog/render'
+import { createRenderServer } from '@v-blog/render'
 
-console.log(add(1,2))
+export function startMainServer() {
+  // createRenderServer()
+}
