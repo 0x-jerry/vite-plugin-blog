@@ -4,7 +4,7 @@ import Vue from '@vitejs/plugin-vue'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import Components from 'unplugin-vue-components/vite'
-import { createBlogPlugin } from './vite/vite-plugin-blog'
+import { createBlogPlugin } from 'vite-plugin-blog'
 
 export default defineConfig({
   resolve: {
@@ -53,7 +53,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['vue', 'vue-router', '@vueuse/core', '@vueuse/head'],
+    include: ['vue', 'vue-router'],
     exclude: ['vue-demi'],
   },
 })

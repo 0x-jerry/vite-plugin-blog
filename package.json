@@ -1,6 +1,7 @@
 {
-  "name": "vite-plugin-vue-blog",
-  "version": "1.0.0",
+  "name": "vite-plugin-blog",
+  "version": "0.1.0",
+  "main": "./src/main.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x-jerry/v-blog-system.git"
@@ -25,5 +26,8 @@
     "jsdom": "^17.0.0",
     "marked": "^3.0.4",
     "typescript": "^4.4.3"
+  },
+  "devDependencies": {
+    "vite": "^2.5.10"
   }
 }
