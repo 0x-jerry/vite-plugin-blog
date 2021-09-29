@@ -1,3 +1,6 @@
 <template>
-  <div>index page</div>
+  <div>
+    index page
+    <router-link to="/test">test page</router-link>
+  </div>
 </template>

@@ -95,6 +95,14 @@ async function startBlogService(opt: BlogServiceConfig) {
       $img.src = relativeSrc
     })
 
+    $.window.document.querySelectorAll('a').forEach(($a) => {
+      const href = $a.href
+
+      if (/^https?:\/\//.test(href)) return
+
+      $a.href = href.replace(/\.md$/, '')
+    })
+
     const html = $.window.document.body.innerHTML
 
     const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]

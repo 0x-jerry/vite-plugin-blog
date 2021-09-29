@@ -7,6 +7,8 @@ layout: test
 
 测试 Post
 
+[test2](./test2.md)
+
 <v-test>
 ## test template
 </v-test>
