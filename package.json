@@ -1,5 +1,5 @@
 {
-  "name": "v-blog-system",
+  "name": "vite-plugin-vue-blog",
   "version": "1.0.0",
   "repository": {
     "type": "git",
@@ -9,5 +9,21 @@
   "bugs": {
     "url": "https://github.com/0x-jerry/v-blog-system/issues"
   },
-  "homepage": "https://github.com/0x-jerry/v-blog-system#readme"
+  "homepage": "https://github.com/0x-jerry/v-blog-system#readme",
+  "peerDependencies": {
+    "vite": "^2.5.10"
+  },
+  "dependencies": {
+    "@types/fs-extra": "^9.0.13",
+    "@types/jsdom": "^16.2.13",
+    "@types/marked": "^3.0.1",
+    "@types/node": "^16.10.1",
+    "chokidar": "^3.5.2",
+    "fast-glob": "^3.2.7",
+    "fs-extra": "^10.0.0",
+    "gray-matter": "^4.0.3",
+    "jsdom": "^17.0.0",
+    "marked": "^3.0.4",
+    "typescript": "^4.4.3"
+  }
 }
