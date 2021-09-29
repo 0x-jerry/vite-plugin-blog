@@ -25,8 +25,9 @@ export function createBlogPlugin(
 
   return {
     name: 'vite-plugin-blog',
-    configResolved() {
-      startBlogService(opt)
+    async configResolved(conf) {
+      const isBuild = conf.command === 'build'
+      await startBlogService(opt, !isBuild)
     },
   }
 }
@@ -35,7 +36,7 @@ const mdGlob = '**/*.md'
 
 let init = false
 
-async function startBlogService(opt: BlogServiceConfig) {
+async function startBlogService(opt: BlogServiceConfig, watch = true) {
   if (init) return
 
   init = true
@@ -58,6 +59,10 @@ async function startBlogService(opt: BlogServiceConfig) {
   }
 
   await transformPosts(opt)
+
+  if (!watch) {
+    return
+  }
 
   const watcher = chokidar.watch(['**/*.md'], { cwd: opt.postDir })
 
