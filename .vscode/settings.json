@@ -4,6 +4,7 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "**/*.code-search": true,
-    "*.lock": true
+    "pnpm-lock.yaml": true,
+    ".gitignore": true
   }
 }
