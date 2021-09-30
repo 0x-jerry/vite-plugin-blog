@@ -4,41 +4,39 @@ import glob from 'fast-glob'
 import path from 'path'
 import chokidar from 'chokidar'
 import { JSDOM } from 'jsdom'
-import { measure, save } from './utils'
 import { changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { changeHrefPlugin } from './plugin/changeHref'
 import { CurrentFileContext, ViteBlogConfig } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
 
-export function createBlogPlugin(
-  opt: ViteBlogConfig = {
+export function createBlogPlugin(opt: Partial<ViteBlogConfig> = {}): Plugin {
+  const defaultOpt: ViteBlogConfig = {
     outDir: '.blog',
     excludes: ['**/node_modules', '**/.git'],
     root: process.cwd(),
     plugins: [],
   }
-): Plugin {
-  opt.plugins.push(changeImageSrcPlugin, changeHrefPlugin)
+
+  const conf: ViteBlogConfig = Object.assign(defaultOpt, opt)
+
+  // default plugin
+  conf.plugins.push(
+    //
+    changeImageSrcPlugin,
+    changeHrefPlugin
+  )
 
   return {
     name: 'vite-plugin-blog',
-    async configResolved(conf) {
-      const isBuild = conf.command === 'build'
-      await startBlogService(opt, !isBuild)
+    async configResolved({ command }) {
+      const isBuild = command === 'build'
+
+      await startBlogService(conf, !isBuild)
     },
   }
 }
 
-const mdGlob = '**/*.md'
-
 let init = false
-
-interface BlogContext {
-  glob: string[]
-  conf: ViteBlogConfig
-  md2vue: Md2Vue
-  transform: typeof transformMarkdown
-}
 
 async function startBlogService(opt: ViteBlogConfig, watch = true) {
   if (init) return
@@ -47,27 +45,22 @@ async function startBlogService(opt: ViteBlogConfig, watch = true) {
 
   const md2vue = createMd2Vue({})
 
-  const ctx: BlogContext = {
-    glob: [mdGlob, ...opt.excludes.map((n) => '!' + n)],
-    conf: opt,
-    md2vue,
-    transform: measure(transformMarkdown),
-  }
+  const ctx = new BlogService(opt, md2vue)
 
-  await transformAllMarkdown(ctx)
+  await ctx.transformAllMarkdown()
 
   if (!watch) {
     return
   }
 
-  const watcher = chokidar.watch(ctx.glob, { cwd: opt.root })
+  const watcher = chokidar.watch(ctx.globPattern, { cwd: opt.root })
 
   watcher.on('change', async (file) => {
-    await transformMarkdownFile(ctx, file)
+    await ctx.transformFile(file)
   })
 
   watcher.on('add', async (file) => {
-    await transformMarkdownFile(ctx, file)
+    await ctx.transformFile(file)
   })
 
   watcher.on('unlink', async (file) => {
@@ -79,52 +72,55 @@ async function startBlogService(opt: ViteBlogConfig, watch = true) {
   })
 }
 
-async function transformAllMarkdown(ctx: BlogContext) {
-  const { conf } = ctx
+export class BlogService {
+  globPattern: string[]
 
-  const mdFiles = await glob(ctx.glob, {
-    cwd: conf.root,
-  })
-
-  for (const file of mdFiles) {
-    await transformMarkdownFile(ctx, file)
-  }
-}
-
-/**
- *
- * @param ctx
- * @param file 相对路径 relative path
- */
-async function transformMarkdownFile(ctx: BlogContext, file: string) {
-  const input = path.join(ctx.conf.root, file)
-  const output = input.replace(/\.md$/, '.vue')
-
-  const fileContext: CurrentFileContext = {
-    file: input,
-    outFile: output,
+  constructor(public conf: ViteBlogConfig, public md2vue: Md2Vue) {
+    this.globPattern = ['**/*.md', ...conf.excludes.map((n) => '!' + n)]
   }
 
-  const sfc = await ctx.transform(ctx, fileContext)
+  async transformAllMarkdown() {
+    const mdFiles = await glob(this.globPattern, {
+      cwd: this.conf.root,
+    })
 
-  await save(output, sfc)
-}
-
-async function transformMarkdown(ctx: BlogContext, fileCtx: CurrentFileContext) {
-  const { conf } = ctx
-  // const mdFilePath = path.join(conf.root, file)
-
-  const result = await ctx.md2vue(fileCtx.file)
-
-  const $html = new JSDOM(result.html)
-
-  for (const plugin of conf.plugins) {
-    await plugin.beforeWriteHtml($html, fileCtx)
+    for (const file of mdFiles) {
+      await this.transformFile(file)
+    }
   }
 
-  const html = $html.window.document.body.innerHTML
+  async transformMarkdown(ctx: CurrentFileContext) {
+    const result = await this.md2vue(ctx.file)
 
-  const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
+    const $html = new JSDOM(result.html)
 
-  return sfc.join('\n')
+    for (const plugin of this.conf.plugins) {
+      await plugin.beforeWriteHtml?.($html, ctx)
+    }
+
+    const html = $html.window.document.body.innerHTML
+
+    const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
+
+    return sfc.join('\n')
+  }
+
+  /**
+   *
+   * @param file relative path
+   */
+  async transformFile(file: string) {
+    const input = path.join(this.conf.root, file)
+    const output = input.replace(/\.md$/, '.vue')
+
+    const fileContext: CurrentFileContext = {
+      file: input,
+      outFile: output,
+    }
+
+    const sfc = await this.transformMarkdown(fileContext)
+
+    await fs.ensureDir(path.parse(file).dir)
+    await fs.writeFile(file, sfc)
+  }
 }
