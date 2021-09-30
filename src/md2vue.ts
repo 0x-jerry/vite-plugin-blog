@@ -21,6 +21,8 @@ export interface MdRenderOption {
   wrapper?: string
 }
 
+export type Md2Vue = typeof md2vue
+
 async function md2vue(file: string, opt: MdRenderOption = {}) {
   const content = await fs.readFile(file, { encoding: 'utf-8' })
 

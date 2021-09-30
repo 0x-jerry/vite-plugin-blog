@@ -10,9 +10,9 @@ export interface CurrentFileContext {
    */
   file: string
   /**
-   * 输出文件夹
+   * 输出文件路径
    */
-  outDir: string
+  outFile: string
 }
 
 export interface ViteBlogConfig {
