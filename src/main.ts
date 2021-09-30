@@ -6,82 +6,114 @@ import chokidar from 'chokidar'
 import { JSDOM } from 'jsdom'
 import { changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { changeHrefPlugin } from './plugin/changeHref'
-import { CurrentFileContext, ViteBlogConfig } from './types'
+import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
 
-export function createBlogPlugin(opt: Partial<ViteBlogConfig> = {}): Plugin {
-  const defaultOpt: ViteBlogConfig = {
-    outDir: '.blog',
-    excludes: ['**/node_modules', '**/.git'],
-    root: process.cwd(),
-    plugins: [],
-  }
+export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'>
 
-  const conf: ViteBlogConfig = Object.assign(defaultOpt, opt)
-
-  // default plugin
-  conf.plugins.push(
-    //
-    changeImageSrcPlugin,
-    changeHrefPlugin
-  )
+export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
+  let init = false
 
   return {
     name: 'vite-plugin-blog',
     async configResolved({ command }) {
-      const isBuild = command === 'build'
+      if (init) return
+      init = true
 
-      await startBlogService(conf, !isBuild)
+      const watch = command === 'serve'
+
+      const plugins = opt.plugins ?? []
+
+      plugins.unshift(changeImageSrcPlugin, changeHrefPlugin)
+
+      const ctx = new BlogService({
+        ...opt,
+        watch,
+        plugins,
+      })
+
+      await ctx.transformAllMarkdown()
     },
   }
 }
 
-let init = false
+export interface BlogServiceConfig {
+  /**
+   * glob
+   */
+  includes: string[]
+  /**
+   * glob
+   */
+  excludes: string[]
 
-async function startBlogService(opt: ViteBlogConfig, watch = true) {
-  if (init) return
+  /**
+   *
+   */
+  root: string
 
-  init = true
+  out: string
 
-  const md2vue = createMd2Vue({})
+  plugins: BlogPlugin[]
 
-  const ctx = new BlogService(opt, md2vue)
-
-  await ctx.transformAllMarkdown()
-
-  if (!watch) {
-    return
-  }
-
-  const watcher = chokidar.watch(ctx.globPattern, { cwd: opt.root })
-
-  watcher.on('change', async (file) => {
-    await ctx.transformFile(file)
-  })
-
-  watcher.on('add', async (file) => {
-    await ctx.transformFile(file)
-  })
-
-  watcher.on('unlink', async (file) => {
-    const outFilePath = path.join(opt.outDir, file.replace(/\.\w+$/, '.vue'))
-
-    if (await fs.pathExists(outFilePath)) {
-      await fs.unlink(outFilePath)
-    }
-  })
+  /**
+   * @default false
+   */
+  watch: boolean
 }
 
 export class BlogService {
   globPattern: string[]
 
-  constructor(public conf: ViteBlogConfig, public md2vue: Md2Vue) {
-    this.globPattern = ['**/*.md', ...conf.excludes.map((n) => '!' + n)]
+  plugins: BlogPlugin[]
+
+  root: string
+
+  outDir: string
+
+  md2vue: Md2Vue
+
+  constructor(conf: Partial<BlogServiceConfig>) {
+    const includes = conf.includes ?? ['**/*.md']
+    const excludes = conf.excludes ?? ['**/node_modules', '**/.git']
+
+    this.globPattern = [...includes, ...excludes.map((n) => '!' + n)]
+
+    this.plugins = conf.plugins ?? []
+
+    this.root = conf.root ?? process.cwd()
+    this.outDir = conf.out ?? '.blog'
+
+    this.md2vue = createMd2Vue({})
+
+    if (conf.watch) {
+      this.#watch()
+    }
+  }
+
+  #watch() {
+    const watcher = chokidar.watch(this.globPattern, { cwd: this.root })
+
+    watcher.on('change', async (file) => {
+      await this.transformFile(file)
+    })
+
+    watcher.on('add', async (file) => {
+      await this.transformFile(file)
+    })
+
+    watcher.on('unlink', async (file) => {
+      const outFilePath = path.join(this.outDir, file.replace(/\.\w+$/, '.vue'))
+
+      if (await fs.pathExists(outFilePath)) {
+        await fs.unlink(outFilePath)
+      }
+    })
   }
 
   async transformAllMarkdown() {
     const mdFiles = await glob(this.globPattern, {
-      cwd: this.conf.root,
+      cwd: this.root,
     })
 
     for (const file of mdFiles) {
@@ -94,7 +126,7 @@ export class BlogService {
 
     const $html = new JSDOM(result.html)
 
-    for (const plugin of this.conf.plugins) {
+    for (const plugin of this.plugins) {
       await plugin.beforeWriteHtml?.($html, ctx)
     }
 
@@ -110,8 +142,8 @@ export class BlogService {
    * @param file relative path
    */
   async transformFile(file: string) {
-    const input = path.join(this.conf.root, file)
-    const output = path.join(this.conf.outDir, file.replace(/\.md$/, '.vue'))
+    const input = path.join(this.root, file)
+    const output = path.join(this.root, this.outDir, file.replace(/\.md$/, '.vue'))
 
     const fileContext: CurrentFileContext = {
       file: input,
@@ -120,7 +152,7 @@ export class BlogService {
 
     const sfc = await this.transformMarkdown(fileContext)
 
-    await fs.ensureDir(path.parse(file).dir)
-    await fs.writeFile(file, sfc)
+    await fs.ensureDir(path.parse(fileContext.outFile).dir)
+    await fs.writeFile(fileContext.outFile, sfc)
   }
 }

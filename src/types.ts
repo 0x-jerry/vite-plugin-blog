@@ -16,22 +16,3 @@ export interface CurrentFileContext {
    */
   outFile: string
 }
-
-export interface ViteBlogConfig {
-  /**
-   * @default `process.cwd()`
-   */
-  root: string
-  /**
-   * fast-glob
-   */
-  excludes: string[]
-  /**
-   *
-   */
-  outDir: string
-  /**
-   *
-   */
-  plugins: BlogPlugin[]
-}
