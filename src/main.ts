@@ -9,7 +9,9 @@ import { changeHrefPlugin } from './plugin/changeHref'
 import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
 
-export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'>
+export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
+  // postDir: string
+}
 
 export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
   let init = false
@@ -32,8 +34,23 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
         plugins,
       })
 
+      buildPostsExcerpt(ctx, 'posts/**/*.md')
+
       await ctx.transformAllMarkdown()
     },
+  }
+}
+
+async function buildPostsExcerpt(ctx: BlogService, postPattern: string) {
+  const files = await glob([postPattern], { cwd: ctx.root })
+
+  for (const file of files) {
+    const fileCtx: CurrentFileContext = {
+      file: path.join(ctx.root, file),
+      outFile: path.join(ctx.root, ctx.outDir, 'post-excerpt', file.replace(/\.md$/, '.vue')),
+    }
+
+    await ctx.transformFile(fileCtx)
   }
 }
 
@@ -95,11 +112,11 @@ export class BlogService {
     const watcher = chokidar.watch(this.globPattern, { cwd: this.root })
 
     watcher.on('change', async (file) => {
-      await this.transformFile(file)
+      await this.transformRelativeFile(file)
     })
 
     watcher.on('add', async (file) => {
-      await this.transformFile(file)
+      await this.transformRelativeFile(file)
     })
 
     watcher.on('unlink', async (file) => {
@@ -117,12 +134,11 @@ export class BlogService {
     })
 
     for (const file of mdFiles) {
-      await this.transformFile(file)
+      await this.transformRelativeFile(file)
     }
   }
 
-  async transformMarkdown(ctx: CurrentFileContext) {
-    const content = await fs.readFile(ctx.file, { encoding: 'utf-8' })
+  async transformMarkdown(content: string, ctx: CurrentFileContext) {
     const result = this.md2vue(content)
 
     const $html = new JSDOM(result.html)
@@ -142,7 +158,7 @@ export class BlogService {
    *
    * @param file relative path
    */
-  async transformFile(file: string) {
+  async transformRelativeFile(file: string) {
     const input = path.join(this.root, file)
     const output = path.join(this.root, this.outDir, file.replace(/\.md$/, '.vue'))
 
@@ -151,7 +167,12 @@ export class BlogService {
       outFile: output,
     }
 
-    const sfc = await this.transformMarkdown(fileContext)
+    await this.transformFile(fileContext)
+  }
+
+  async transformFile(fileContext: CurrentFileContext) {
+    const content = await fs.readFile(fileContext.file, { encoding: 'utf-8' })
+    const sfc = await this.transformMarkdown(content, fileContext)
 
     await fs.ensureDir(path.parse(fileContext.outFile).dir)
     await fs.writeFile(fileContext.outFile, sfc)
