@@ -3,6 +3,8 @@ title: posts
 layout: test
 ---
 
+title: {{frontmatter.title}}
+
 # Post
 
 测试 Post

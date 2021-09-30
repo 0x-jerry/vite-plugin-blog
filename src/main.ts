@@ -88,27 +88,9 @@ async function startBlogService(opt: BlogServiceConfig, watch = true) {
 
     const result = await md2vue(mdFilePath)
 
-    const $ = new JSDOM(result.html)
+    const rawHtml = result.html
 
-    $.window.document.querySelectorAll('img').forEach(($img) => {
-      const src = $img.src
-
-      if (/^https?:\/\//.test(src)) return
-
-      const abs = path.resolve(path.parse(mdFilePath).dir, src)
-      const relativeSrc = path.relative(outDir, abs)
-      $img.src = relativeSrc
-    })
-
-    $.window.document.querySelectorAll('a').forEach(($a) => {
-      const href = $a.href
-
-      if (/^https?:\/\//.test(href)) return
-
-      $a.href = href.replace(/\.md$/, '')
-    })
-
-    const html = $.window.document.body.innerHTML
+    const html = beforeWriteTemplate(rawHtml, { file: mdFilePath, outDir })
 
     const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
 
@@ -117,4 +99,39 @@ async function startBlogService(opt: BlogServiceConfig, watch = true) {
       sfc.map((s) => s.trim()).join('\n\n')
     )
   }
+}
+
+export interface CurrentFileContext {
+  /**
+   * 当前文件路径
+   */
+  file: string
+  /**
+   * 输出文件夹
+   */
+  outDir: string
+}
+
+function beforeWriteTemplate(html: string, { file, outDir }: CurrentFileContext) {
+  const $ = new JSDOM(html)
+
+  $.window.document.querySelectorAll('img').forEach(($img) => {
+    const src = $img.src
+
+    if (/^https?:\/\//.test(src)) return
+
+    const abs = path.resolve(path.parse(file).dir, src)
+    const relativeSrc = path.relative(outDir, abs)
+    $img.src = relativeSrc
+  })
+
+  $.window.document.querySelectorAll('a').forEach(($a) => {
+    const href = $a.href
+
+    if (/^https?:\/\//.test(href)) return
+
+    $a.href = href.replace(/\.md$/, '')
+  })
+
+  return $.window.document.body.innerHTML
 }
