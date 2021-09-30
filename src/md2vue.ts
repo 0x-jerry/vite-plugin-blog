@@ -1,5 +1,4 @@
 import marked from 'marked'
-import fs from 'fs-extra'
 import matter from 'gray-matter'
 
 export interface Md2VueOption {
@@ -23,9 +22,7 @@ export interface MdRenderOption {
 
 export type Md2Vue = typeof md2vue
 
-async function md2vue(file: string, opt: MdRenderOption = {}) {
-  const content = await fs.readFile(file, { encoding: 'utf-8' })
-
+function md2vue(content: string, opt: MdRenderOption = {}) {
   const frontmatter = matter(content, {
     excerpt_separator: '<!-- more -->',
   })

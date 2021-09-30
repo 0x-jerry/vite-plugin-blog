@@ -122,7 +122,8 @@ export class BlogService {
   }
 
   async transformMarkdown(ctx: CurrentFileContext) {
-    const result = await this.md2vue(ctx.file)
+    const content = await fs.readFile(ctx.file, { encoding: 'utf-8' })
+    const result = this.md2vue(content)
 
     const $html = new JSDOM(result.html)
 
