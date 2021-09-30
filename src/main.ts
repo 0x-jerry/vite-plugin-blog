@@ -111,7 +111,7 @@ export class BlogService {
    */
   async transformFile(file: string) {
     const input = path.join(this.conf.root, file)
-    const output = input.replace(/\.md$/, '.vue')
+    const output = path.join(this.conf.outDir, file.replace(/\.md$/, '.vue'))
 
     const fileContext: CurrentFileContext = {
       file: input,
