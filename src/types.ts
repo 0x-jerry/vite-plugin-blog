@@ -16,8 +16,20 @@ export interface CurrentFileContext {
 }
 
 export interface ViteBlogConfig {
-  postDir: string
-  noteDir: string
+  /**
+   * @default `process.cwd()`
+   */
+  root: string
+  /**
+   * fast-glob
+   */
+  excludes: string[]
+  /**
+   *
+   */
   outDir: string
+  /**
+   *
+   */
   plugins: BlogPlugin[]
 }
