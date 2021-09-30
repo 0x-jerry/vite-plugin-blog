@@ -24,13 +24,13 @@ export interface MdRenderOption {
 async function md2vue(file: string, opt: MdRenderOption = {}) {
   const content = await fs.readFile(file, { encoding: 'utf-8' })
 
-  const mdMatter = matter(content, {
+  const frontmatter = matter(content, {
     excerpt_separator: '<!-- more -->',
   })
 
-  const layout = mdMatter.data?.layout
+  const layout = frontmatter.data?.layout
 
-  let rendered = marked(mdMatter.content)
+  let rendered = marked(frontmatter.content)
 
   const tag = opt.wrapper || 'div'
   rendered = `<${tag} v-bind="frontmatter">${rendered}</${tag}>`
@@ -38,7 +38,7 @@ async function md2vue(file: string, opt: MdRenderOption = {}) {
   const html = rendered
 
   const script = `<script setup>
-const frontmatter = ${JSON.stringify(mdMatter.data || {})}
+const frontmatter = ${JSON.stringify(frontmatter.data || {})}
 </script>`
 
   const blocks = []
@@ -55,5 +55,5 @@ ${JSON.stringify({
     )
   }
 
-  return { html, script, blocks }
+  return { html, script, blocks, frontmatter }
 }

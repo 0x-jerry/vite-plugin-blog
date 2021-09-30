@@ -3,25 +3,25 @@ import fs from 'fs-extra'
 import glob from 'fast-glob'
 import path from 'path'
 import chokidar from 'chokidar'
-import { createMd2Vue } from './md2vue'
 import { JSDOM } from 'jsdom'
 import { measure } from './utils'
-
-interface BlogServiceConfig {
-  postDir: string
-  noteDir: string
-  outDir: string
-}
+import { changeImageSrcPlugin } from './plugin/changeImageSrc'
+import { changeHrefPlugin } from './plugin/changeHref'
+import { ViteBlogConfig } from './types'
+import { createMd2Vue } from './md2vue'
 
 export function createBlogPlugin(
-  opt: BlogServiceConfig = {
+  opt: ViteBlogConfig = {
     outDir: '.blog',
     postDir: 'posts',
     noteDir: 'notes',
+    plugins: [],
   }
 ): Plugin {
   opt.postDir = path.resolve(opt.postDir)
   opt.noteDir = path.resolve(opt.noteDir)
+
+  opt.plugins.push(changeImageSrcPlugin, changeHrefPlugin)
 
   return {
     name: 'vite-plugin-blog',
@@ -36,7 +36,7 @@ const mdGlob = '**/*.md'
 
 let init = false
 
-async function startBlogService(opt: BlogServiceConfig, watch = true) {
+async function startBlogService(opt: ViteBlogConfig, watch = true) {
   if (init) return
 
   init = true
@@ -47,7 +47,7 @@ async function startBlogService(opt: BlogServiceConfig, watch = true) {
 
   const transform = measure(transformMarkdown)
 
-  async function transformPosts(opt: BlogServiceConfig) {
+  async function transformPosts(opt: ViteBlogConfig) {
     const mdFiles = await glob(mdGlob, {
       cwd: opt.postDir,
     })
@@ -83,14 +83,18 @@ async function startBlogService(opt: BlogServiceConfig, watch = true) {
     }
   })
 
-  async function transformMarkdown(opt: BlogServiceConfig, file: string, outDir: string) {
+  async function transformMarkdown(opt: ViteBlogConfig, file: string, outDir: string) {
     const mdFilePath = path.join(opt.postDir, file)
 
     const result = await md2vue(mdFilePath)
 
-    const rawHtml = result.html
+    const $html = new JSDOM(result.html)
 
-    const html = beforeWriteTemplate(rawHtml, { file: mdFilePath, outDir })
+    for (const plugin of opt.plugins) {
+      await plugin.beforeWriteHtml($html, { file: mdFilePath, outDir })
+    }
+
+    const html = $html.window.document.body.innerHTML
 
     const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
 
@@ -99,39 +103,4 @@ async function startBlogService(opt: BlogServiceConfig, watch = true) {
       sfc.map((s) => s.trim()).join('\n\n')
     )
   }
-}
-
-export interface CurrentFileContext {
-  /**
-   * 当前文件路径
-   */
-  file: string
-  /**
-   * 输出文件夹
-   */
-  outDir: string
-}
-
-function beforeWriteTemplate(html: string, { file, outDir }: CurrentFileContext) {
-  const $ = new JSDOM(html)
-
-  $.window.document.querySelectorAll('img').forEach(($img) => {
-    const src = $img.src
-
-    if (/^https?:\/\//.test(src)) return
-
-    const abs = path.resolve(path.parse(file).dir, src)
-    const relativeSrc = path.relative(outDir, abs)
-    $img.src = relativeSrc
-  })
-
-  $.window.document.querySelectorAll('a').forEach(($a) => {
-    const href = $a.href
-
-    if (/^https?:\/\//.test(href)) return
-
-    $a.href = href.replace(/\.md$/, '')
-  })
-
-  return $.window.document.body.innerHTML
 }
