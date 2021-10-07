@@ -1,6 +1,7 @@
 ---
 title: posts
 layout: test
+date: 1
 ---
 
 title: {{frontmatter.title}}

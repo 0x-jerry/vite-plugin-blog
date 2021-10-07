@@ -4,6 +4,7 @@ import path from 'path'
 import { CurrentFileContext } from '../types'
 import { BlogService } from '../BlogService'
 import chokidar from 'chokidar'
+import debounce from 'lodash/debounce'
 
 export type SortInfoFn = (infos: FileInfo[]) => FileInfo[]
 
@@ -47,8 +48,10 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
     await transformFile(file)
   }
 
-  const generateEntryFile = () =>
-    generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, 'entry.ts'))
+  const generateEntryFile = debounce(
+    () => generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, 'entry.ts')),
+    100
+  )
 
   await generateEntryFile()
 
