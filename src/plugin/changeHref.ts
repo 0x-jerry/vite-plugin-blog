@@ -1,16 +1,27 @@
 import { BlogPlugin } from '../types'
+import { replaceTag } from './utils'
+
+export interface ChangeHrefOption {
+  tag?: string
+}
 
 /**
  * 修正 md 链接
  */
-export const changeHrefPlugin: BlogPlugin = {
-  beforeWriteHtml($) {
-    $.window.document.querySelectorAll('a').forEach(($a) => {
-      const href = $a.href
+export const changeHrefPlugin = (opt: ChangeHrefOption = {}): BlogPlugin => {
+  return {
+    beforeWriteHtml($) {
+      $.window.document.querySelectorAll('a').forEach(($a) => {
+        const href = $a.href
 
-      if (/^https?:\/\//.test(href)) return
+        if (/^https?:\/\//.test(href)) return
 
-      $a.href = href.replace(/\.md$/, '')
-    })
-  },
+        $a.href = href.replace(/\.md$/, '')
+
+        if (opt.tag) {
+          replaceTag($.window.document, $a, opt.tag)
+        }
+      })
+    },
+  }
 }

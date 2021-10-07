@@ -1,19 +1,22 @@
-import { Plugin } from 'vite'
+import { PluginOption } from 'vite'
 import fs from 'fs-extra'
 import glob from 'fast-glob'
 import path from 'path'
 import chokidar from 'chokidar'
 import { JSDOM } from 'jsdom'
-import { changeImageSrcPlugin } from './plugin/changeImageSrc'
-import { changeHrefPlugin } from './plugin/changeHref'
+import { ChangeImageOption, changeImageSrcPlugin } from './plugin/changeImageSrc'
+import { ChangeHrefOption, changeHrefPlugin } from './plugin/changeHref'
 import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
 
 export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
-  // postDir: string
+  pluginOpt: {
+    changeHref?: ChangeHrefOption
+    changeImage?: ChangeImageOption
+  }
 }
 
-export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
+export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOption {
   let init = false
 
   return {
@@ -26,7 +29,10 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
 
       const plugins = opt.plugins ?? []
 
-      plugins.unshift(changeImageSrcPlugin, changeHrefPlugin)
+      plugins.unshift(
+        changeImageSrcPlugin(opt.pluginOpt?.changeImage),
+        changeHrefPlugin(opt.pluginOpt?.changeHref)
+      )
 
       const ctx = new BlogService({
         ...opt,
@@ -34,7 +40,7 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): Plugin {
         plugins,
       })
 
-      buildPostsExcerpt(ctx, 'posts/**/*.md')
+      await buildPostsExcerpt(ctx, 'posts/**/*.md')
 
       await ctx.transformAllMarkdown()
     },
