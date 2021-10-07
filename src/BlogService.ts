@@ -5,7 +5,7 @@ import chokidar from 'chokidar'
 import matter from 'gray-matter'
 import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext } from './types'
-import { createMd2Vue, Md2Vue } from './md2vue'
+import { createMd2Vue, Md2Vue, Md2VueResult, MdRenderOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
 
 export interface MDFileInfo<T = any> {
@@ -78,6 +78,11 @@ export interface BlogServiceConfig {
    * vite command config
    */
   command: 'build' | 'serve'
+
+  transform: {
+    before?(info: MDFileInfo): MdRenderOption
+    // after?(result: Md2VueResult): Promise<Md2VueResult> | Md2VueResult
+  }
 }
 
 export class BlogService {
@@ -95,6 +100,8 @@ export class BlogService {
 
   command: 'build' | 'serve'
 
+  transform?: BlogServiceConfig['transform']
+
   constructor(conf: Partial<BlogServiceConfig>) {
     const includes = conf.includes ?? ['**/*.md']
     const excludes = conf.excludes ?? ['**/node_modules', '**/.git']
@@ -109,6 +116,7 @@ export class BlogService {
     this.md2vue = createMd2Vue({})
 
     this.command = conf.command || 'build'
+    this.transform = conf.transform
   }
 
   watch() {
@@ -142,7 +150,9 @@ export class BlogService {
   }
 
   async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
-    const result = this.md2vue(info)
+    const opt = this.transform?.before?.(info)
+
+    const result = this.md2vue(info, opt)
 
     const $html = new JSDOM(result.html)
 

@@ -22,6 +22,8 @@ export interface MdRenderOption {
 
 export type Md2Vue = typeof md2vue
 
+export type Md2VueResult = ReturnType<Md2Vue>
+
 function md2vue(info: MDFileInfo, opt: MdRenderOption = {}) {
   const layout = info.matter?.layout
 
