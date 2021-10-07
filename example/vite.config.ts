@@ -37,7 +37,13 @@ export default defineConfig({
       dts: 'src/components.d.ts',
     }),
 
-    createBlogPlugin(),
+    createBlogPlugin({
+      pluginOpt: {
+        changeHref: {
+          tag: 'v-link',
+        },
+      },
+    }),
   ],
 
   server: {
@@ -47,6 +53,7 @@ export default defineConfig({
   },
 
   // https://github.com/antfu/vite-ssg
+  // @ts-ignore
   ssgOptions: {
     script: 'async',
     formatting: 'minify',
