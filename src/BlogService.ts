@@ -6,26 +6,7 @@ import matter from 'gray-matter'
 import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
-
-export interface BlogServiceConfig {
-  /**
-   * glob
-   */
-  includes: string[]
-  /**
-   * glob
-   */
-  excludes: string[]
-
-  /**
-   *
-   */
-  root: string
-
-  out: string
-
-  plugins: BlogPlugin[]
-}
+import { ImportAllOption, importAll } from './generator/importAll'
 
 export interface MDFileInfo<T = any> {
   path: string
@@ -72,6 +53,26 @@ class CacheFs {
 
     return info
   }
+}
+
+export interface BlogServiceConfig {
+  /**
+   * glob
+   */
+  includes: string[]
+  /**
+   * glob
+   */
+  excludes: string[]
+
+  /**
+   *
+   */
+  root: string
+
+  out: string
+
+  plugins: BlogPlugin[]
 }
 
 export class BlogService {
@@ -169,5 +170,9 @@ export class BlogService {
 
     await fs.ensureDir(path.parse(fileContext.outFile).dir)
     await fs.writeFile(fileContext.outFile, sfc)
+  }
+
+  async generateImportAll(opt: ImportAllOption) {
+    return importAll(this, opt)
   }
 }

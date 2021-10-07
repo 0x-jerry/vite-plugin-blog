@@ -5,38 +5,46 @@ import { CurrentFileContext } from '../types'
 import { BlogService } from '../BlogService'
 import chokidar from 'chokidar'
 
-export interface BuildPostsExcerptOption {
-  postPattern: string
+export type SortInfoFn = (infos: FileInfo[]) => FileInfo[]
+
+export interface ImportAllOption {
+  filePattern: string
+  dir: string
   watch?: boolean
-  dir?: string
+  sort?: SortInfoFn
 }
 
-export async function buildPostsExcerpt(ctx: BlogService, opt: BuildPostsExcerptOption) {
-  const { postPattern, watch = false, dir = 'excerpts' } = opt
-  const files = await glob([postPattern], { cwd: ctx.root })
+const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => a.matter?.date - b.matter?.date)
+
+export async function importAll(ctx: BlogService, opt: ImportAllOption) {
+  const { filePattern, watch = false, dir, sort = sortFn } = opt
+  const files = await glob([filePattern], { cwd: ctx.root })
   const outDirPath = path.join(ctx.root, ctx.outDir, dir)
 
-  const allFilesInfo = new Map<string, ExcerptFileInfo>()
+  const allFilesInfo = new Map<string, FileInfo>()
 
   for (const file of files) {
-    await transformExcerpt(file)
+    await transformFile(file)
   }
 
-  await generateExcerptsEntry([...allFilesInfo.values()], outDirPath)
+  const generateEntryFile = () =>
+    generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, 'entry.ts'))
+
+  await generateEntryFile()
 
   if (watch) {
-    const watcher = chokidar.watch([postPattern], { cwd: ctx.root })
+    const watcher = chokidar.watch([filePattern], { cwd: ctx.root })
 
     watcher.on('change', async (file) => {
-      await transformExcerpt(file)
+      await transformFile(file)
 
-      await generateExcerptsEntry([...allFilesInfo.values()], outDirPath)
+      await generateEntryFile()
     })
 
     watcher.on('add', async (file) => {
-      await transformExcerpt(file)
+      await transformFile(file)
 
-      await generateExcerptsEntry([...allFilesInfo.values()], outDirPath)
+      await generateEntryFile()
     })
 
     watcher.on('unlink', async (file) => {
@@ -48,11 +56,11 @@ export async function buildPostsExcerpt(ctx: BlogService, opt: BuildPostsExcerpt
 
       allFilesInfo.delete(outFilePath)
 
-      await generateExcerptsEntry([...allFilesInfo.values()], outDirPath)
+      await generateEntryFile()
     })
   }
 
-  async function transformExcerpt(file: string) {
+  async function transformFile(file: string) {
     const fileContext: CurrentFileContext = {
       file: path.join(ctx.root, file),
       outFile: path.join(outDirPath, file.replace(/\.md$/, '.vue')),
@@ -78,25 +86,22 @@ export async function buildPostsExcerpt(ctx: BlogService, opt: BuildPostsExcerpt
   }
 }
 
-export interface ExcerptFileInfo {
+export interface FileInfo {
   path: string
   matter?: any
 }
 
-async function generateExcerptsEntry(infos: ExcerptFileInfo[], outDir: string) {
-  // sort excerpts
-  infos.sort((a, b) => a.matter?.date - b.matter?.date)
+async function generateEntry(infos: FileInfo[], outPath: string) {
+  const outDir = path.parse(outPath).dir
 
   const src = `
-  ${infos
-    .map((i, idx) => `import _Exceprt${idx} from './${path.relative(outDir, i.path)}'`)
-    .join('\n')}
+  ${infos.map((i, idx) => `import Comp${idx} from './${path.relative(outDir, i.path)}'`).join('\n')}
 
-  export const excerpts = [
-    ${infos.map((_, idx) => `_Exceprt${idx}`).join(',')}
+  export const components = [
+    ${infos.map((_, idx) => `Comp${idx}`).join(',')}
   ]
   `
 
   await fs.ensureDir(outDir)
-  await fs.writeFile(path.join(outDir, 'entry.ts'), src)
+  await fs.writeFile(outPath, src)
 }

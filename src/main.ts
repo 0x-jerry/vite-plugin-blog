@@ -1,7 +1,6 @@
 import { PluginOption } from 'vite'
 import { ChangeImageOption, changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { ChangeHrefOption, changeHrefPlugin } from './plugin/changeHref'
-import { buildPostsExcerpt } from './generator/excerpts'
 import { BlogServiceConfig, BlogService } from './BlogService'
 
 export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
@@ -39,9 +38,10 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
 
       await ctx.transformAllMarkdown()
 
-      await buildPostsExcerpt(ctx, {
-        postPattern: (opt.folder?.posts ?? 'posts') + '/**/*.md',
+      await ctx.generateImportAll({
+        filePattern: (opt.folder?.posts ?? 'posts') + '/**/*.md',
         watch,
+        dir: 'excerpts',
       })
 
       if (watch) {
