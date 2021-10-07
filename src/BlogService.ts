@@ -73,6 +73,11 @@ export interface BlogServiceConfig {
   out: string
 
   plugins: BlogPlugin[]
+
+  /**
+   * vite command config
+   */
+  command: 'build' | 'serve'
 }
 
 export class BlogService {
@@ -88,6 +93,8 @@ export class BlogService {
 
   cache = new CacheFs()
 
+  command: 'build' | 'serve'
+
   constructor(conf: Partial<BlogServiceConfig>) {
     const includes = conf.includes ?? ['**/*.md']
     const excludes = conf.excludes ?? ['**/node_modules', '**/.git']
@@ -100,6 +107,8 @@ export class BlogService {
     this.outDir = conf.out ?? '.blog'
 
     this.md2vue = createMd2Vue({})
+
+    this.command = conf.command || 'build'
   }
 
   watch() {
@@ -172,7 +181,10 @@ export class BlogService {
     await fs.writeFile(fileContext.outFile, sfc)
   }
 
-  async generateImportAll(opt: ImportAllOption) {
-    return importAll(this, opt)
+  async generateImportAll(opt: Omit<ImportAllOption, 'watch'>) {
+    return importAll(this, {
+      ...opt,
+      watch: this.command === 'serve',
+    })
   }
 }

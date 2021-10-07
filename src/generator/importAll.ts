@@ -12,16 +12,36 @@ export interface ImportAllOption {
   dir: string
   watch?: boolean
   sort?: SortInfoFn
+  transformFile?: (fileCtx: CurrentFileContext, ctx: BlogService) => Promise<void> | void
 }
 
-const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => a.matter?.date - b.matter?.date)
+const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => b.matter?.date - a.matter?.date)
 
 export async function importAll(ctx: BlogService, opt: ImportAllOption) {
   const { filePattern, watch = false, dir, sort = sortFn } = opt
+
+  const allFilesInfo = new Map<string, FileInfo>()
   const files = await glob([filePattern], { cwd: ctx.root })
   const outDirPath = path.join(ctx.root, ctx.outDir, dir)
 
-  const allFilesInfo = new Map<string, FileInfo>()
+  const transformFile = async (file: string) => {
+    const fileContext: CurrentFileContext = {
+      file: path.join(ctx.root, file),
+      outFile: path.join(outDirPath, file.replace(/\.md$/, '.vue')),
+    }
+
+    const info = await ctx.cache.read(fileContext.file)
+    allFilesInfo.set(fileContext.outFile, {
+      path: fileContext.outFile,
+      matter: info.matter,
+    })
+
+    if (opt.transformFile) {
+      await opt.transformFile(fileContext, ctx)
+    } else {
+      await ctx.transformFile(fileContext)
+    }
+  }
 
   for (const file of files) {
     await transformFile(file)
@@ -58,31 +78,6 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
 
       await generateEntryFile()
     })
-  }
-
-  async function transformFile(file: string) {
-    const fileContext: CurrentFileContext = {
-      file: path.join(ctx.root, file),
-      outFile: path.join(outDirPath, file.replace(/\.md$/, '.vue')),
-    }
-
-    const info = await ctx.cache.read(fileContext.file)
-
-    const sfc = await ctx.transformMarkdown(
-      {
-        ...info,
-        content: info.excerpt,
-      },
-      fileContext
-    )
-
-    allFilesInfo.set(fileContext.outFile, {
-      path: fileContext.outFile,
-      matter: info.matter,
-    })
-
-    await fs.ensureDir(path.parse(fileContext.outFile).dir)
-    await fs.writeFile(fileContext.outFile, sfc)
   }
 }
 
