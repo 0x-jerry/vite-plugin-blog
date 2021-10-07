@@ -13,6 +13,8 @@ layout: test
 ## test template
 </v-test>
 
+[xxx][hello]
+
 <!-- more -->
 
 hello

@@ -1,5 +1,5 @@
 import marked from 'marked'
-import { MDFileInfo } from './cache'
+import { MDFileInfo } from './BlogService'
 
 export interface Md2VueOption {
   wrapper?: string
