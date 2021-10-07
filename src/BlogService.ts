@@ -54,7 +54,7 @@ class CacheFs {
       excerpt_separator: '<!-- more -->',
     })
 
-    const footLinksReg = /^\[[^\]]+\]\:.+$/gm
+    const footLinksReg = /^\[[^\^][^\]]*\]\:.+$/gm
     const links = frontmatter.content.match(footLinksReg) || []
 
     const excerpt = [frontmatter.excerpt, links.join('\n')].filter(Boolean).join('\n')
