@@ -8,6 +8,7 @@ import { ChangeImageOption, changeImageSrcPlugin } from './plugin/changeImageSrc
 import { ChangeHrefOption, changeHrefPlugin } from './plugin/changeHref'
 import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue } from './md2vue'
+import { cacheFs, MDFileInfo } from './cache'
 
 export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
   pluginOpt: {
@@ -36,13 +37,16 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
 
       const ctx = new BlogService({
         ...opt,
-        watch,
         plugins,
       })
 
       await buildPostsExcerpt(ctx, 'posts/**/*.md')
 
       await ctx.transformAllMarkdown()
+
+      if (watch) {
+        ctx.watch()
+      }
     },
   }
 }
@@ -78,11 +82,6 @@ export interface BlogServiceConfig {
   out: string
 
   plugins: BlogPlugin[]
-
-  /**
-   * @default false
-   */
-  watch: boolean
 }
 
 export class BlogService {
@@ -96,6 +95,8 @@ export class BlogService {
 
   md2vue: Md2Vue
 
+  cache = cacheFs
+
   constructor(conf: Partial<BlogServiceConfig>) {
     const includes = conf.includes ?? ['**/*.md']
     const excludes = conf.excludes ?? ['**/node_modules', '**/.git']
@@ -108,13 +109,9 @@ export class BlogService {
     this.outDir = conf.out ?? '.blog'
 
     this.md2vue = createMd2Vue({})
-
-    if (conf.watch) {
-      this.#watch()
-    }
   }
 
-  #watch() {
+  watch() {
     const watcher = chokidar.watch(this.globPattern, { cwd: this.root })
 
     watcher.on('change', async (file) => {
@@ -144,8 +141,8 @@ export class BlogService {
     }
   }
 
-  async transformMarkdown(content: string, ctx: CurrentFileContext) {
-    const result = this.md2vue(content)
+  async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
+    const result = this.md2vue(info)
 
     const $html = new JSDOM(result.html)
 
@@ -177,7 +174,7 @@ export class BlogService {
   }
 
   async transformFile(fileContext: CurrentFileContext) {
-    const content = await fs.readFile(fileContext.file, { encoding: 'utf-8' })
+    const content = await this.cache.read(fileContext.file)
     const sfc = await this.transformMarkdown(content, fileContext)
 
     await fs.ensureDir(path.parse(fileContext.outFile).dir)

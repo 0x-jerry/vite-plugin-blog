@@ -1,5 +1,5 @@
 import marked from 'marked'
-import matter from 'gray-matter'
+import { MDFileInfo } from './cache'
 
 export interface Md2VueOption {
   wrapper?: string
@@ -22,14 +22,10 @@ export interface MdRenderOption {
 
 export type Md2Vue = typeof md2vue
 
-function md2vue(content: string, opt: MdRenderOption = {}) {
-  const frontmatter = matter(content, {
-    excerpt_separator: '<!-- more -->',
-  })
+function md2vue(info: MDFileInfo, opt: MdRenderOption = {}) {
+  const layout = info.matter?.layout
 
-  const layout = frontmatter.data?.layout
-
-  let rendered = marked(frontmatter.content)
+  let rendered = marked(info.content)
 
   const tag = opt.wrapper || 'div'
   rendered = `<${tag} v-bind="frontmatter">${rendered}</${tag}>`
@@ -37,7 +33,7 @@ function md2vue(content: string, opt: MdRenderOption = {}) {
   const html = rendered
 
   const script = `<script setup>
-const frontmatter = ${JSON.stringify(frontmatter.data || {})}
+const frontmatter = ${JSON.stringify(info.matter || {})}
 </script>`
 
   const blocks = []
@@ -54,5 +50,5 @@ ${JSON.stringify({
     )
   }
 
-  return { html, script, blocks, frontmatter }
+  return { html, script, blocks, frontmatter: info.matter }
 }

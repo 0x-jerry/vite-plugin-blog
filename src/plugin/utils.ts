@@ -7,5 +7,7 @@ export function replaceTag(document: Document, node: HTMLElement, tagName: strin
     newNode.setAttribute(attr, node.getAttribute(attr)!)
   }
 
+  node.childNodes.forEach((n) => newNode.appendChild(n))
+
   node.parentElement?.replaceChild(newNode, node)
 }
