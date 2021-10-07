@@ -5,13 +5,13 @@
   "typings": "src/main.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0x-jerry/v-blog-system.git"
+    "url": "git+https://github.com/0x-jerry/vite-plugin-blog.git"
   },
   "keywords": [],
   "bugs": {
-    "url": "https://github.com/0x-jerry/v-blog-system/issues"
+    "url": "https://github.com/0x-jerry/vite-plugin-blog/issues"
   },
-  "homepage": "https://github.com/0x-jerry/v-blog-system#readme",
+  "homepage": "https://github.com/0x-jerry/vite-plugin-blog#readme",
   "files": [
     "dist",
     "src"
