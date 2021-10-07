@@ -19,3 +19,5 @@ hello
 ![test image](./test.jpg)
 
 ![abs image](https://test.jpg)
+
+[hello]: http://baidu.com
