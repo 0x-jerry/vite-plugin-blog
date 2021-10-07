@@ -12,8 +12,17 @@
     "url": "https://github.com/0x-jerry/v-blog-system/issues"
   },
   "homepage": "https://github.com/0x-jerry/v-blog-system#readme",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
-    "dev": "tsup src/main.ts --watch src"
+    "prepublishOnly": "npm run build",
+    "dev": "tsup src/main.ts --watch src",
+    "build": "tsup src/main.ts"
   },
   "peerDependencies": {
     "vite": "^2.5.10"
