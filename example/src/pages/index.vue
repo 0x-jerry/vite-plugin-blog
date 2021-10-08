@@ -1,6 +1,12 @@
+<script lang="ts" setup>
+import { components } from '~blog/excerpts/entry'
+</script>
+
 <template>
   <div>
-    index page
-    <router-link to="/test">test page</router-link>
+    <div v-for="o in components">
+      <component :is="o"></component>
+      <hr />
+    </div>
   </div>
 </template>
