@@ -39,6 +39,7 @@ export default defineConfig({
     }),
 
     createBlogPlugin({
+      includes: ['posts/**/*.md'],
       pluginOpt: {
         changeHref: {
           tag: 'v-link',
@@ -46,6 +47,12 @@ export default defineConfig({
         changeImage: {
           tag: 'v-image',
         },
+      },
+      async onAfterBuild(ctx) {
+        await ctx.generateImportAll({
+          filePattern: 'notes/**/*.md',
+          dir: 'notes',
+        })
       },
     }),
   ],
