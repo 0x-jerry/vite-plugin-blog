@@ -39,7 +39,6 @@ export default defineConfig({
     }),
 
     createBlogPlugin({
-      includes: ['posts/**/*.md'],
       pluginOpt: {
         changeHref: {
           tag: 'v-link',

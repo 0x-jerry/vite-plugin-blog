@@ -58,14 +58,7 @@ class CacheFs {
 }
 
 export interface BlogServiceConfig {
-  /**
-   * glob
-   */
-  includes: string[]
-  /**
-   * glob
-   */
-  excludes: string[]
+  postsDir: string
 
   /**
    *
@@ -105,10 +98,9 @@ export class BlogService {
   transform?: BlogServiceConfig['transform']
 
   constructor(conf: Partial<BlogServiceConfig>) {
-    const includes = conf.includes ?? ['**/*.md']
-    const excludes = conf.excludes ?? ['**/node_modules', '**/.git']
+    const postDir = conf.postsDir ?? 'posts'
 
-    this.globPattern = [...includes, ...excludes.map((n) => '!' + n)]
+    this.globPattern = [postDir + '/**/*.md']
 
     this.plugins = conf.plugins ?? []
 
