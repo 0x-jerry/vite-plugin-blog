@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-blog",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "dist/main.js",
   "typings": "src/main.ts",
   "repository": {
@@ -42,9 +42,9 @@
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
     "@types/jsdom": "^16.2.13",
+    "@types/lodash": "^4.14.175",
     "@types/marked": "^3.0.1",
     "@types/node": "^16.10.3",
-    "@types/lodash": "^4.14.175",
     "@types/prismjs": "^1.16.6",
     "@types/rimraf": "^3.0.2",
     "tsup": "^5.4.0",
