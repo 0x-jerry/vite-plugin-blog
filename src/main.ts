@@ -2,14 +2,14 @@ import path from 'path'
 import fs from 'fs-extra'
 import { PluginOption } from 'vite'
 import rm from 'rimraf'
-import { ChangeImageOption, changeImageSrcPlugin } from './plugin/changeImageSrc'
-import { ChangeHrefOption, changeHrefPlugin } from './plugin/changeHref'
+import { changeImageSrcPlugin } from './plugin/changeImageSrc'
+import { changeHrefPlugin } from './plugin/changeHref'
 import { BlogServiceConfig, BlogService } from './BlogService'
+import { ChangeTagOption, changeTagPlugin } from './plugin/changeTag'
 
 export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
   pluginOpt: {
-    changeHref?: ChangeHrefOption
-    changeImage?: ChangeImageOption
+    changeTag?: ChangeTagOption
   }
 
   folder: {
@@ -30,12 +30,13 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
 
       const watch = command === 'serve'
 
-      const plugins = opt.plugins ?? []
+      const internalPlugins = [
+        changeImageSrcPlugin(),
+        changeHrefPlugin(),
+        changeTagPlugin(opt.pluginOpt?.changeTag),
+      ]
 
-      plugins.unshift(
-        changeImageSrcPlugin(opt.pluginOpt?.changeImage),
-        changeHrefPlugin(opt.pluginOpt?.changeHref)
-      )
+      const plugins = internalPlugins.concat(opt.plugins ?? [])
 
       const ctx = new BlogService({
         ...opt,

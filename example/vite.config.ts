@@ -40,8 +40,10 @@ export default defineConfig({
 
     createBlogPlugin({
       pluginOpt: {
-        changeHref: {
-          tag: 'v-link',
+        changeTag: {
+          map: {
+            a: 'v-link',
+          },
         },
       },
       async onAfterBuild(ctx) {
