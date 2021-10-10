@@ -18,6 +18,7 @@ export function createMd2Vue(opt: Md2VueOption) {
 
 export interface MdRenderOption {
   wrapper?: string
+  extra?: Record<string, any>
 }
 
 export type Md2Vue = typeof md2vue
@@ -34,8 +35,10 @@ function md2vue(info: MDFileInfo, opt: MdRenderOption = {}) {
 
   const html = rendered
 
+  const frontmatter = Object.assign({}, info.matter, opt.extra)
+
   const script = `<script setup>
-const frontmatter = ${JSON.stringify(info.matter || {})}
+const frontmatter = ${JSON.stringify(frontmatter)}
 </script>`
 
   const blocks = []
