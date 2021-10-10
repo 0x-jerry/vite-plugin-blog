@@ -18,6 +18,21 @@ date: 2
 
 <!-- more -->
 
+```js {3,5-8}
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+console.log('hello')
+```
+
 hello
 ![test image](./test.jpg)
 

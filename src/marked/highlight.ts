@@ -1,5 +1,5 @@
 // modify based on https://github.com/jGleitz/markdown-it-prism
-import { MarkedExtension } from 'marked'
+import { MarkedExtension, Renderer } from 'marked'
 import Prism, { Grammar } from 'prismjs'
 import loadLanguages from 'prismjs/components/'
 
@@ -26,6 +26,11 @@ interface Options {
    * to each option if it is set to {@code undefined}.
    */
   defaultLanguage?: string
+
+  /**
+   * @default true
+   */
+  highlightLines?: boolean
 }
 
 const DEFAULTS: Options = {
@@ -36,6 +41,7 @@ const DEFAULTS: Options = {
   defaultLanguageForUnknown: undefined,
   defaultLanguageForUnspecified: undefined,
   defaultLanguage: undefined,
+  highlightLines: true,
 }
 
 /**
@@ -113,11 +119,11 @@ function checkLanguageOption(
 /**
  * Initialisation function of the plugin.
  *
- * @param useroptions
+ * @param userOptions
  *        The options this plugin is being initialised with.
  */
-export function highlightExt(useroptions: Partial<Options> = {}): MarkedExtension {
-  const options = Object.assign({}, DEFAULTS, useroptions)
+export function highlightExt(userOptions: Partial<Options> = {}): MarkedExtension {
+  const options = Object.assign({}, DEFAULTS, userOptions)
 
   checkLanguageOption(options, 'defaultLanguage')
   checkLanguageOption(options, 'defaultLanguageForUnknown')
@@ -131,14 +137,54 @@ export function highlightExt(useroptions: Partial<Options> = {}): MarkedExtensio
 
   return {
     renderer: {
-      code(text, lang = '') {
+      // @ts-ignore
+      code(this: Renderer, text, langAttr = '') {
+        const [lang, lines] = langAttr.split(/\s+/)
+
         const result = highlight(options, text, lang)
         const [langToUse] = selectLanguage(options, lang)
 
-        return `<pre class="language-${langToUse}">${result}</pre>`
+        const langClass = `${this.options.langPrefix}${langToUse}`
+        const resultCode = `<pre class="${langClass}"><code class="${langClass}">${result}</code></pre>`
+
+        if (lines && options.highlightLines) {
+          const highlightLinesCode = highlightLines(text, lines, langClass, resultCode)
+          return highlightLinesCode
+        }
+
+        return resultCode
       },
     },
   }
+}
+
+const RE = /{([\d,-]+)}/
+
+function highlightLines(rawCode: string, lines: string, langClass: string, code: string) {
+  const lineNumbers = RE.exec(lines)![1]
+    .split(',')
+    .map((v) => v.split('-').map((v) => parseInt(v, 10)))
+
+  const highlightLinesCode = rawCode
+    .split('\n')
+    .map((split, index) => {
+      const lineNumber = index + 1
+      const inRange = lineNumbers.some(([start, end]) => {
+        if (start && end) {
+          return lineNumber >= start && lineNumber <= end
+        }
+        return lineNumber === start
+      })
+      if (inRange) {
+        return `<div class="highlighted">&nbsp;</div>`
+      }
+      return '<br>'
+    })
+    .join('')
+
+  const highlightLinesWrapperCode = `<div class="${langClass} highlight-lines">${highlightLinesCode}</div>`
+
+  return `<div class="code">${highlightLinesWrapperCode}${code}</div>`
 }
 
 /**

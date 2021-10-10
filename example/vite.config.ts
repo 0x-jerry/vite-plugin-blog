@@ -43,9 +43,6 @@ export default defineConfig({
         changeHref: {
           tag: 'v-link',
         },
-        changeImage: {
-          tag: 'v-image',
-        },
       },
       async onAfterBuild(ctx) {
         await ctx.generateImportAll({
