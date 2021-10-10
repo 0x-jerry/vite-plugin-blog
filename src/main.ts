@@ -1,7 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import { PluginOption } from 'vite'
-import rm from 'rimraf'
+// import rm from 'rimraf'
 import { changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { changeHrefPlugin } from './plugin/changeHref'
 import { BlogServiceConfig, BlogService } from './BlogService'
@@ -17,10 +17,6 @@ export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
 
 export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOption {
   let init = false
-
-  // avoid other vite plugin access dist file.
-  const outDir = path.join(opt.root ?? process.cwd(), opt.out ?? '.blog')
-  rm.sync(outDir)
 
   return {
     name: 'vite-plugin-blog',
@@ -44,6 +40,10 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
         plugins,
         command,
       })
+
+      // avoid other vite plugin access dist file.
+      // const outDir = path.join(opt.root ?? process.cwd(), opt.out ?? '.blog')
+      // rm.sync(ctx.outDir)
 
       await ctx.transformAllMarkdown()
 
