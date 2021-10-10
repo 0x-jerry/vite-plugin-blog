@@ -85,22 +85,24 @@ export class BlogService {
 
   plugins: BlogPlugin[]
 
-  root: string
+  readonly root: string
 
-  outDir: string
+  readonly outDir: string
+
+  readonly postsDir: string
+
+  readonly command: 'build' | 'serve'
 
   md2vue: Md2Vue
 
   cache = new CacheFs()
 
-  command: 'build' | 'serve'
-
   transform?: BlogServiceConfig['transform']
 
   constructor(conf: Partial<BlogServiceConfig>) {
-    const postDir = conf.postsDir ?? 'posts'
+    this.postsDir = conf.postsDir ?? 'posts'
 
-    this.globPattern = [postDir + '/**/*.md']
+    this.globPattern = [this.postsDir + '/**/*.md']
 
     this.plugins = conf.plugins ?? []
 
@@ -151,7 +153,7 @@ export class BlogService {
     const $html = new JSDOM(result.html)
 
     for (const plugin of this.plugins) {
-      await plugin.beforeWriteHtml?.($html, ctx, info)
+      await plugin.beforeWriteHtml?.call(this, $html, ctx, info)
     }
 
     const html = $html.window.document.body.innerHTML

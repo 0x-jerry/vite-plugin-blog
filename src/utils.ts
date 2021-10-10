@@ -9,3 +9,9 @@ export function measure<T extends (...args: any[]) => any>(fn: T): T {
     return result
   } as T
 }
+
+export function sleep(ts: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ts)
+  })
+}

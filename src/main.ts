@@ -12,18 +12,19 @@ export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
     changeTag?: ChangeTagOption
   }
 
-  folder: {
-    posts?: string
-  }
-
-  onAfterBuild(ctx: BlogService): Promise<void> | void
+  onAfterBuild?(ctx: BlogService): Promise<void> | void
 }
 
 export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOption {
   let init = false
 
+  // avoid other vite plugin access dist file.
+  const outDir = path.join(opt.root ?? process.cwd(), opt.out ?? '.blog')
+  rm.sync(outDir)
+
   return {
     name: 'vite-plugin-blog',
+    enforce: 'post',
     async configResolved({ command }) {
       if (init) return
       init = true
@@ -46,12 +47,9 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
 
       await ctx.transformAllMarkdown()
 
-      // clear output dir
-      rm.sync(ctx.outDir)
-
       // generate excerpts
       await ctx.generateImportAll({
-        filePattern: (opt.folder?.posts ?? 'posts') + '/**/*.md',
+        filePattern: ctx.postsDir + '/**/*.md',
         dir: 'excerpts',
         async transformFile(fileContext, ctx) {
           const info = await ctx.cache.read(fileContext.file)
