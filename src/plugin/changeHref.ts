@@ -14,9 +14,9 @@ export const changeHrefPlugin = (opt: ChangeHrefOption = {}): BlogPlugin => {
       $.window.document.querySelectorAll('a').forEach(($a) => {
         const href = $a.href
 
-        if (/^https?:\/\//.test(href)) return
-
-        $a.href = href.replace(/\.md$/, '')
+        if (!/^https?:\/\//.test(href)) {
+          $a.href = href.replace(/\.md$/, '')
+        }
 
         if (opt.tag) {
           replaceTag($.window.document, $a, opt.tag)

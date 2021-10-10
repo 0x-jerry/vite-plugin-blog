@@ -15,12 +15,12 @@ export const changeImageSrcPlugin = (opt: ChangeImageOption = {}): BlogPlugin =>
       $.window.document.querySelectorAll('img').forEach(($img) => {
         const src = $img.src
 
-        if (/^https?:\/\//.test(src)) return
-
-        const abs = path.resolve(path.parse(file).dir, src)
-        const outDir = path.parse(outFile).dir
-        const relativeSrc = path.relative(outDir, abs)
-        $img.src = relativeSrc
+        if (!/^https?:\/\//.test(src)) {
+          const abs = path.resolve(path.parse(file).dir, src)
+          const outDir = path.parse(outFile).dir
+          const relativeSrc = path.relative(outDir, abs)
+          $img.src = relativeSrc
+        }
 
         if (opt.tag) {
           replaceTag($.window.document, $img, opt.tag)
