@@ -51,7 +51,7 @@ export default defineConfig({
       async onAfterBuild(ctx) {
         await ctx.generateImportAll({
           filePattern: 'notes/**/*.md',
-          dir: 'notes',
+          filename: 'notes.ts',
         })
       },
     }),

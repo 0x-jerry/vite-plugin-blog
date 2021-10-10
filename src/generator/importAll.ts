@@ -10,7 +10,8 @@ export type SortInfoFn = (infos: FileInfo[]) => FileInfo[]
 
 export interface ImportAllOption {
   filePattern: string
-  dir: string
+  filename?: string
+  dir?: string
   watch?: boolean
   sort?: SortInfoFn
   transformFile?: (fileCtx: CurrentFileContext, ctx: BlogService) => Promise<void> | void
@@ -19,7 +20,14 @@ export interface ImportAllOption {
 const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => b.matter?.date - a.matter?.date)
 
 export async function importAll(ctx: BlogService, opt: ImportAllOption) {
-  const { filePattern, watch = false, dir, sort = sortFn } = opt
+  const {
+    filePattern,
+    watch = false,
+    dir = '',
+    sort = sortFn,
+    //
+    filename = 'entry.ts',
+  } = opt
 
   const allFilesInfo = new Map<string, FileInfo>()
   const files = await glob([filePattern], { cwd: ctx.root })
@@ -49,7 +57,7 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
   }
 
   const generateEntryFile = debounce(
-    () => generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, 'entry.ts')),
+    () => generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, filename)),
     100
   )
 
