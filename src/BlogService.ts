@@ -105,7 +105,7 @@ export class BlogService {
     this.plugins = conf.plugins ?? []
 
     this.root = conf.root ?? process.cwd()
-    this.outDir = conf.out ?? '.blog'
+    this.outDir = path.join(this.root, conf.out ?? '.blog')
 
     this.md2vue = createMd2Vue({})
 
@@ -167,7 +167,7 @@ export class BlogService {
    */
   async transformRelativeFile(file: string) {
     const input = path.join(this.root, file)
-    const output = path.join(this.root, this.outDir, file.replace(/\.md$/, '.vue'))
+    const output = path.join(this.outDir, file.replace(/\.md$/, '.vue'))
 
     const fileContext: CurrentFileContext = {
       file: input,

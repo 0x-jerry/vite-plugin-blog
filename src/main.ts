@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs-extra'
 import { PluginOption } from 'vite'
+import rm from 'rimraf'
 import { ChangeImageOption, changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { ChangeHrefOption, changeHrefPlugin } from './plugin/changeHref'
 import { BlogServiceConfig, BlogService } from './BlogService'
@@ -43,6 +44,9 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
       })
 
       await ctx.transformAllMarkdown()
+
+      // clear output dir
+      rm.sync(ctx.outDir)
 
       // generate excerpts
       await ctx.generateImportAll({

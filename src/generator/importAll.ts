@@ -31,7 +31,7 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
 
   const allFilesInfo = new Map<string, FileInfo>()
   const files = await glob([filePattern], { cwd: ctx.root })
-  const outDirPath = path.join(ctx.root, ctx.outDir, dir)
+  const outDirPath = path.join(ctx.outDir, dir)
 
   const transformFile = async (file: string) => {
     const fileContext: CurrentFileContext = {
