@@ -139,7 +139,7 @@ export function highlightExt(userOptions: Partial<Options> = {}): MarkedExtensio
     renderer: {
       // @ts-ignore
       code(this: Renderer, text, langAttr = '') {
-        const [lang, lines] = langAttr.split(/\s+/)
+        const [lang, lines] = langAttr.trim().split(/\s+/)
 
         const result = highlight(options, text, lang)
         const [langToUse] = selectLanguage(options, lang)
