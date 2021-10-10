@@ -1,7 +1,8 @@
 import { JSDOM } from 'jsdom'
+import { MDFileInfo } from './BlogService'
 
 export interface BlogServicePlugin {
-  beforeWriteHtml($: JSDOM, ctx: CurrentFileContext): void | Promise<void>
+  beforeWriteHtml($: JSDOM, ctx: CurrentFileContext, info: MDFileInfo): void | Promise<void>
 }
 
 export type BlogPlugin = Partial<BlogServicePlugin>

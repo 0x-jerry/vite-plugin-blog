@@ -151,7 +151,7 @@ export class BlogService {
     const $html = new JSDOM(result.html)
 
     for (const plugin of this.plugins) {
-      await plugin.beforeWriteHtml?.($html, ctx)
+      await plugin.beforeWriteHtml?.($html, ctx, info)
     }
 
     const html = $html.window.document.body.innerHTML
