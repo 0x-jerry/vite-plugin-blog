@@ -50,11 +50,11 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
         dir: 'excerpts',
         async transformFile(fileContext, ctx) {
           const info = await ctx.cache.read(fileContext.file)
-          info.type = 'excerpt'
 
           const sfc = await ctx.transformMarkdown(
             {
               ...info,
+              type: 'excerpt',
               content: info.excerpt,
             },
             fileContext
