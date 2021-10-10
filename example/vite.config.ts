@@ -15,13 +15,19 @@ export default defineConfig({
   },
   plugins: [
     Vue({
-      include: [/\.vue$/, /\.md$/],
+      include: [/\.vue$/],
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
-      extensions: ['vue', 'md'],
-      pagesDir: ['src/pages', '.blog/posts'],
+      extensions: ['vue'],
+      pagesDir: [
+        'src/pages',
+        {
+          dir: '.blog/posts',
+          baseRoute: 'post',
+        },
+      ],
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -30,10 +36,10 @@ export default defineConfig({
     // https://github.com/antfu/unplugin-vue-components
     Components({
       // allow auto load markdown components under `./src/components/`
-      extensions: ['vue', 'md'],
+      extensions: ['vue'],
 
       // allow auto import and register components used in markdown
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+      include: [/\.vue$/, /\.vue\?vue/],
 
       dts: 'src/components.d.ts',
     }),

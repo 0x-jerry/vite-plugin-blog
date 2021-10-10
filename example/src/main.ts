@@ -5,6 +5,7 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import App from './App.vue'
 
 const routes = setupLayouts(generatedRoutes)
+console.log(routes)
 
 // https://github.com/antfu/vite-ssg
 export const createApp = ViteSSG(App, { routes })
