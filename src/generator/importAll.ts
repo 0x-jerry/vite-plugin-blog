@@ -56,10 +56,32 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
     await transformFile(file)
   }
 
-  const generateEntryFile = debounce(
-    () => generateEntry(sort([...allFilesInfo.values()]), path.join(outDirPath, filename)),
-    100
-  )
+  const generateEntryFile = debounce(async () => {
+    const infos = sort([...allFilesInfo.values()])
+    const outPath = path.join(outDirPath, filename)
+    const outDir = path.parse(outPath).dir
+
+    const src = `
+      ${infos
+        .map((i, idx) => `import Comp${idx} from './${path.relative(outDir, i.path)}'`)
+        .join('\n')}
+
+      export const modules = [
+        ${infos
+          .map((v, idx) => {
+            const data = JSON.stringify(v.matter || {}, null, 2)
+            return `{
+              data: ${data},
+              module: Comp${idx},
+            }`
+          })
+          .join(',\n')}
+      ]
+      `
+
+    await fs.ensureDir(outDir)
+    await fs.writeFile(outPath, src)
+  }, 100)
 
   await generateEntryFile()
 
@@ -95,19 +117,4 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
 export interface FileInfo {
   path: string
   matter?: any
-}
-
-async function generateEntry(infos: FileInfo[], outPath: string) {
-  const outDir = path.parse(outPath).dir
-
-  const src = `
-  ${infos.map((i, idx) => `import Comp${idx} from './${path.relative(outDir, i.path)}'`).join('\n')}
-
-  export const components = [
-    ${infos.map((_, idx) => `Comp${idx}`).join(',')}
-  ]
-  `
-
-  await fs.ensureDir(outDir)
-  await fs.writeFile(outPath, src)
 }
