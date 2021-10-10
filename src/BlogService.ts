@@ -5,7 +5,7 @@ import chokidar from 'chokidar'
 import matter from 'gray-matter'
 import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext } from './types'
-import { createMd2Vue, Md2Vue, Md2VueResult, MdRenderOption } from './md2vue'
+import { createMd2Vue, Md2Vue, MdRenderOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
 
 export interface MDFileInfo<T = any> {
@@ -15,6 +15,8 @@ export interface MDFileInfo<T = any> {
 
   content: string
   excerpt: string
+
+  type?: 'excerpt'
 }
 
 class CacheFs {
