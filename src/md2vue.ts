@@ -1,17 +1,17 @@
 import marked from 'marked'
 import { MDFileInfo } from './BlogService'
+import { highlightExt } from './marked/highlight'
 
-export interface Md2VueOption {
-  wrapper?: string
+function initMarked() {
+  marked.use(
+    highlightExt({
+      defaultLanguage: 'markup',
+    })
+  )
 }
 
-function initMarked(opt: Md2VueOption) {
-  // marked.use({})
-  //
-}
-
-export function createMd2Vue(opt: Md2VueOption) {
-  initMarked(opt)
+export function createMd2Vue() {
+  initMarked()
 
   return md2vue
 }

@@ -107,7 +107,7 @@ export class BlogService {
     this.root = conf.root ?? process.cwd()
     this.outDir = path.join(this.root, conf.out ?? '.blog')
 
-    this.md2vue = createMd2Vue({})
+    this.md2vue = createMd2Vue()
 
     this.command = conf.command || 'build'
     this.transform = conf.transform
