@@ -5,12 +5,17 @@ import rm from 'rimraf'
 import { changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { changeHrefPlugin } from './plugin/changeHref'
 import { BlogServiceConfig, BlogService } from './BlogService'
-import { ChangeTagOption, changeTagPlugin } from './plugin/changeTag'
+import { changeTagPlugin } from './plugin/changeTag'
 
 export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
-  pluginOpt: {
-    changeTag?: ChangeTagOption
-  }
+  /**
+   * @default '{}'
+   */
+  changeTagMap?: Record<string, string>
+  /**
+   * @default '/post'
+   */
+  postHrefPrefix?: string
 
   onAfterBuild?(ctx: BlogService): Promise<void> | void
 }
@@ -24,13 +29,16 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
 
     const watch = command === 'serve'
 
-    const internalPlugins = [
+    const plugins = [
+      // apply before
+      changeHrefPlugin({ postHrePrefix: opt.postHrefPrefix }),
       changeImageSrcPlugin(),
-      changeHrefPlugin(),
-      changeTagPlugin(opt.pluginOpt?.changeTag),
-    ]
 
-    const plugins = internalPlugins.concat(opt.plugins ?? [])
+      ...(opt.plugins ?? []),
+
+      // apply after
+      changeTagPlugin({ map: opt.changeTagMap }),
+    ]
 
     const ctx = new BlogService({
       ...opt,
