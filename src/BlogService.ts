@@ -9,6 +9,7 @@ import { createMd2Vue, Md2Vue, MdRenderOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
 import debounce from 'lodash/debounce'
 import serialize from 'serialize-javascript'
+import md5 from 'md5'
 
 export interface MDFileInfo<T = any> {
   path: string
@@ -21,18 +22,25 @@ export interface MDFileInfo<T = any> {
   type?: 'excerpt'
 }
 
-class CacheFs {
+class CacheCore {
   #cache: Record<string, MDFileInfo> = {}
 
   get cacheData() {
     return this.#cache
   }
 
+  transformResult: Record<string, string | undefined> = {}
+
   constructor(public readonly config: string) {}
 
   #save = debounce(async () => {
     await fs.ensureFile(this.config)
-    const text = serialize(this.#cache)
+
+    const text = serialize({
+      cache: this.#cache,
+      transform: this.transformResult,
+    })
+
     await fs.writeFile(this.config, text)
   }, 100)
 
@@ -51,7 +59,8 @@ class CacheFs {
 
     const data = deserialize(content)
 
-    this.#cache = data
+    this.#cache = data.cache
+    this.transformResult = data.transform
   }
 
   async read(path: string): Promise<MDFileInfo> {
@@ -128,7 +137,7 @@ export class BlogService {
 
   md2vue: Md2Vue
 
-  cache: CacheFs
+  cache: CacheCore
 
   transform?: BlogServiceConfig['transform']
 
@@ -147,7 +156,7 @@ export class BlogService {
     this.command = conf.command || 'build'
     this.transform = conf.transform
 
-    this.cache = new CacheFs(path.join(this.outDir, '.cache'))
+    this.cache = new CacheCore(path.join(this.outDir, '.cache'))
   }
 
   async init() {
@@ -184,7 +193,20 @@ export class BlogService {
     }
   }
 
+  hasTransformed(fileCtx: CurrentFileContext) {
+    const hash = md5(fileCtx.file + fileCtx.outFile)
+    const hit = this.cache.transformResult[hash]
+
+    return hit
+  }
+
   async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
+    const hit = this.hasTransformed(ctx)
+
+    if (hit) {
+      return hit
+    }
+
     const opt = this.transform?.before?.(info)
 
     const result = this.md2vue(info, opt)
@@ -220,6 +242,11 @@ export class BlogService {
 
   async transformFile(fileContext: CurrentFileContext) {
     const content = await this.cache.read(fileContext.file)
+
+    if (this.hasTransformed(fileContext)) {
+      return
+    }
+
     const sfc = await this.transformMarkdown(content, fileContext)
 
     await fs.ensureDir(path.parse(fileContext.outFile).dir)
