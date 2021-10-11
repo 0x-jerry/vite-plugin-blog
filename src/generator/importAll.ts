@@ -66,9 +66,7 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
     }
   }
 
-  for (const file of files) {
-    await transformFile(file)
-  }
+  await Promise.all(files.map((file) => transformFile(file)))
 
   const generateEntryFile = debounce(async () => {
     const infos = sort([...allFilesInfo.values()])

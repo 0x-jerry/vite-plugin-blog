@@ -202,9 +202,7 @@ export class BlogService {
       cwd: this.root,
     })
 
-    for (const file of mdFiles) {
-      await this.transformRelativeFile(file)
-    }
+    await Promise.all(mdFiles.map((file) => this.transformRelativeFile(file)))
   }
 
   async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
