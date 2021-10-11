@@ -14,6 +14,7 @@ export interface ImportAllOption {
   dir?: string
   watch?: boolean
   sort?: SortInfoFn
+  read?: (fileContext: CurrentFileContext, ctx: BlogService) => Promise<MDFileInfo> | MDFileInfo
   transform?: (
     info: MDFileInfo,
     fileContext: CurrentFileContext,
@@ -43,7 +44,7 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
       outFile: path.join(outDirPath, file.replace(/\.md$/, '.vue')),
     }
 
-    const info = await ctx.cache.read(fileContext.file)
+    const info = await (opt.read ? opt.read(fileContext, ctx) : ctx.cache.read(fileContext.file))
 
     allFilesInfo.set(fileContext.outFile, {
       path: fileContext.outFile,

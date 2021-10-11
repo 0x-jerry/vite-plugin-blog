@@ -62,15 +62,17 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
     await ctx.generateImportAll({
       filePattern: ctx.postsDir + '/**/*.md',
       dir: 'excerpts',
+      async read(fileCtx, ctx) {
+        const info = await ctx.cache.read(fileCtx.file)
+
+        return {
+          ...info,
+          type: 'excerpt',
+          content: info.excerpt,
+        }
+      },
       async transform(info, fileContext, ctx) {
-        const sfc = await ctx.transformMarkdown(
-          {
-            ...info,
-            type: 'excerpt',
-            content: info.excerpt,
-          },
-          fileContext
-        )
+        const sfc = await ctx.transformMarkdown(info, fileContext)
 
         return sfc
       },
