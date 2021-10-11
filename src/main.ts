@@ -54,6 +54,8 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
       command,
     })
 
+    await ctx.init()
+
     await ctx.transformAllMarkdown()
 
     // generate excerpts

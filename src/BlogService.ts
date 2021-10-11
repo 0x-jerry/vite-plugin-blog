@@ -28,9 +28,7 @@ class CacheFs {
     return this.#cache
   }
 
-  constructor(public readonly config: string) {
-    this.init()
-  }
+  constructor(public readonly config: string) {}
 
   #save = debounce(async () => {
     await fs.ensureFile(this.config)
@@ -52,7 +50,6 @@ class CacheFs {
     }
 
     const data = deserialize(content)
-    console.log(data)
 
     this.#cache = data
   }
@@ -151,6 +148,10 @@ export class BlogService {
     this.transform = conf.transform
 
     this.cache = new CacheFs(path.join(this.outDir, '.cache'))
+  }
+
+  async init() {
+    await this.cache.init()
   }
 
   watch() {
