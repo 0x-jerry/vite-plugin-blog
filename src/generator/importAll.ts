@@ -2,7 +2,7 @@ import fs from 'fs-extra'
 import glob from 'fast-glob'
 import path from 'path'
 import { CurrentFileContext } from '../types'
-import { BlogService } from '../BlogService'
+import { BlogService, MDFileInfo } from '../BlogService'
 import chokidar from 'chokidar'
 import debounce from 'lodash/debounce'
 
@@ -14,7 +14,11 @@ export interface ImportAllOption {
   dir?: string
   watch?: boolean
   sort?: SortInfoFn
-  transformFile?: (fileCtx: CurrentFileContext, ctx: BlogService) => Promise<void> | void
+  transform?: (
+    info: MDFileInfo,
+    fileContext: CurrentFileContext,
+    ctx: BlogService
+  ) => Promise<string> | string
 }
 
 const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => b.matter?.date - a.matter?.date)
@@ -40,13 +44,22 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
     }
 
     const info = await ctx.cache.read(fileContext.file)
+
     allFilesInfo.set(fileContext.outFile, {
       path: fileContext.outFile,
       matter: info.matter,
     })
 
-    if (opt.transformFile) {
-      await opt.transformFile(fileContext, ctx)
+    if (opt.transform) {
+      if (ctx.cache.hasTransformed(fileContext)) {
+        return
+      }
+
+      const code = await opt.transform(info, fileContext, ctx)
+      ctx.cache.setTransformedCache(fileContext, code)
+
+      await fs.ensureDir(path.parse(fileContext.outFile).dir)
+      await fs.writeFile(fileContext.outFile, code)
     } else {
       await ctx.transformFile(fileContext)
     }

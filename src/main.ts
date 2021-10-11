@@ -62,9 +62,7 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
     await ctx.generateImportAll({
       filePattern: ctx.postsDir + '/**/*.md',
       dir: 'excerpts',
-      async transformFile(fileContext, ctx) {
-        const info = await ctx.cache.read(fileContext.file)
-
+      async transform(info, fileContext, ctx) {
         const sfc = await ctx.transformMarkdown(
           {
             ...info,
@@ -74,8 +72,7 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
           fileContext
         )
 
-        await fs.ensureDir(path.parse(fileContext.outFile).dir)
-        await fs.writeFile(fileContext.outFile, sfc)
+        return sfc
       },
     })
 
