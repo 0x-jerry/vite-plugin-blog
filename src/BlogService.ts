@@ -63,15 +63,15 @@ class CacheCore {
     this.#transformResult = data.transform
   }
 
-  hasTransformed(fileCtx: CurrentFileContext) {
-    const hash = md5(fileCtx.file + fileCtx.outFile)
+  hasTransformed(fileCtx: CurrentFileContext, info: MDFileInfo) {
+    const hash = md5(fileCtx.file + fileCtx.outFile + JSON.stringify(info))
     const hit = this.#transformResult[hash]
 
     return hit
   }
 
-  setTransformedCache(fileCtx: CurrentFileContext, code: string) {
-    const hash = md5(fileCtx.file + fileCtx.outFile)
+  setTransformedCache(fileCtx: CurrentFileContext, info: MDFileInfo, code: string) {
+    const hash = md5(fileCtx.file + fileCtx.outFile + JSON.stringify(info))
     this.#transformResult[hash] = code
 
     this.#save()
@@ -208,7 +208,7 @@ export class BlogService {
   }
 
   async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
-    const hit = this.cache.hasTransformed(ctx)
+    const hit = this.cache.hasTransformed(ctx, info)
 
     if (hit) {
       return hit
@@ -230,7 +230,7 @@ export class BlogService {
 
     const transformResult = sfc.join('\n')
 
-    this.cache.setTransformedCache(ctx, transformResult)
+    this.cache.setTransformedCache(ctx, info, transformResult)
 
     return transformResult
   }
@@ -254,7 +254,7 @@ export class BlogService {
   async transformFile(fileContext: CurrentFileContext) {
     const content = await this.cache.read(fileContext.file)
 
-    if (this.cache.hasTransformed(fileContext)) {
+    if (this.cache.hasTransformed(fileContext, content)) {
       return
     }
 

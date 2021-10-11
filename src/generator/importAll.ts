@@ -51,12 +51,12 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
     })
 
     if (opt.transform) {
-      if (ctx.cache.hasTransformed(fileContext)) {
+      if (ctx.cache.hasTransformed(fileContext, info)) {
         return
       }
 
       const code = await opt.transform(info, fileContext, ctx)
-      ctx.cache.setTransformedCache(fileContext, code)
+      ctx.cache.setTransformedCache(fileContext, info, code)
 
       await fs.ensureDir(path.parse(fileContext.outFile).dir)
       await fs.writeFile(fileContext.outFile, code)
