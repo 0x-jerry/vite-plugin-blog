@@ -23,6 +23,15 @@ export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
 export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOption {
   let init = false
 
+  return {
+    name: 'vite-plugin-blog',
+    enforce: 'pre',
+    async config(conf, env) {
+      await initPlugin(env.command)
+      return conf
+    },
+  }
+
   async function initPlugin(command: 'serve' | 'build') {
     if (init) return
     init = true
@@ -77,14 +86,5 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
     if (watch) {
       ctx.watch()
     }
-  }
-
-  return {
-    name: 'vite-plugin-blog',
-    enforce: 'pre',
-    async config(conf, env) {
-      await initPlugin(env.command)
-      return conf
-    },
   }
 }
