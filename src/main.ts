@@ -1,5 +1,3 @@
-import path from 'path'
-import fs from 'fs-extra'
 import { PluginOption } from 'vite'
 import { changeImageSrcPlugin } from './plugin/changeImageSrc'
 import { changeHrefPlugin } from './plugin/changeHref'
