@@ -1,5 +1,5 @@
 ---
-title: posts
+title: test2
 layout: test
 date: 2
 ---
@@ -14,7 +14,7 @@ date: 2
 ## test template
 </v-test>
 
-[xxx][hello]
+[xxx](https://baidu.com)
 
 <!-- more -->
 
@@ -32,10 +32,3 @@ console.log('hello')
 console.log('hello')
 console.log('hello')
 ```
-
-hello
-![test image](./test.jpg)
-
-![abs image](https://test.jpg)
-
-[hello]: http://baidu.com

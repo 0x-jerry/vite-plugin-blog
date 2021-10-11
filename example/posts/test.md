@@ -19,7 +19,7 @@ title: {{frontmatter.title}}
 <!-- more -->
 
 hello
-![test image](./test.jpg)
+![test image](./assets/image.jpg)
 
 ![abs image](https://test.jpg)
 

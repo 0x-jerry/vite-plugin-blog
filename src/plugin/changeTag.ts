@@ -1,4 +1,5 @@
 import { BlogPlugin } from '../types'
+import { replaceTag } from './utils'
 
 export interface ChangeTagOption {
   /**
@@ -26,18 +27,4 @@ export const changeTagPlugin = (opt: ChangeTagOption = {}): BlogPlugin => {
       }
     },
   }
-}
-
-export function replaceTag(document: Document, node: Element, tagName: string) {
-  const newNode = document.createElement(tagName)
-
-  const attrs = node.getAttributeNames()
-
-  for (const attr of attrs) {
-    newNode.setAttribute(attr, node.getAttribute(attr)!)
-  }
-
-  node.childNodes.forEach((n) => newNode.appendChild(n))
-
-  node.parentElement?.replaceChild(newNode, node)
 }
