@@ -23,7 +23,7 @@ export const changeHrefPlugin = (opt: ChangeHrefOption = {}): BlogPlugin => {
       const postsRoot = path.join(this.root, this.postsDir)
 
       if (currentInfo.type === 'excerpt') {
-        const infos = this.cache.cache.values()
+        const infos = Object.values(this.cache.cacheData)
         for (const info of infos) {
           const post = info.path
             //

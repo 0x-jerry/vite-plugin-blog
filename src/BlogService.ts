@@ -7,6 +7,8 @@ import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext } from './types'
 import { createMd2Vue, Md2Vue, MdRenderOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
+import debounce from 'lodash/debounce'
+import serialize from 'serialize-javascript'
 
 export interface MDFileInfo<T = any> {
   path: string
@@ -20,10 +22,43 @@ export interface MDFileInfo<T = any> {
 }
 
 class CacheFs {
-  cache = new Map<string, MDFileInfo>()
+  #cache: Record<string, MDFileInfo> = {}
+
+  get cacheData() {
+    return this.#cache
+  }
+
+  constructor(public readonly config: string) {
+    this.init()
+  }
+
+  #save = debounce(async () => {
+    await fs.ensureFile(this.config)
+    const text = serialize(this.#cache)
+    await fs.writeFile(this.config, text)
+  }, 100)
+
+  async init() {
+    if (!(await fs.pathExists(this.config))) {
+      return
+    }
+
+    const content = await fs.readFile(this.config, {
+      encoding: 'utf-8',
+    })
+
+    function deserialize(serializedJavascript: string) {
+      return (0, eval)('(' + serializedJavascript + ')')
+    }
+
+    const data = deserialize(content)
+    console.log(data)
+
+    this.#cache = data
+  }
 
   async read(path: string): Promise<MDFileInfo> {
-    const hit = this.cache.get(path)
+    const hit = this.#cache[path]
 
     const stat = await fs.stat(path)
 
@@ -51,8 +86,9 @@ class CacheFs {
       excerpt: excerpt,
     }
 
-    this.cache.set(path, info)
+    this.#cache[path] = info
 
+    this.#save()
     return info
   }
 }
@@ -95,7 +131,7 @@ export class BlogService {
 
   md2vue: Md2Vue
 
-  cache = new CacheFs()
+  cache: CacheFs
 
   transform?: BlogServiceConfig['transform']
 
@@ -113,6 +149,8 @@ export class BlogService {
 
     this.command = conf.command || 'build'
     this.transform = conf.transform
+
+    this.cache = new CacheFs(path.join(this.outDir, '.cache'))
   }
 
   watch() {

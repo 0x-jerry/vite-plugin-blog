@@ -12,6 +12,7 @@ importers:
       '@types/node': ^16.10.3
       '@types/prismjs': ^1.16.6
       '@types/rimraf': ^3.0.2
+      '@types/serialize-javascript': ^5.0.1
       chokidar: ^3.5.2
       fast-glob: ^3.2.7
       fs-extra: ^10.0.0
@@ -22,6 +23,7 @@ importers:
       mime-types: ^2.1.33
       prismjs: ^1.25.0
       rimraf: ^3.0.2
+      serialize-javascript: ^6.0.0
       tsup: ^5.4.0
       typescript: ^4.4.3
       vite: ^2.6.5
@@ -36,6 +38,7 @@ importers:
       mime-types: registry.npmmirror.com/mime-types/2.1.33
       prismjs: registry.npmmirror.com/prismjs/1.25.0
       rimraf: registry.npmmirror.com/rimraf/3.0.2
+      serialize-javascript: registry.nlark.com/serialize-javascript/6.0.0
       typescript: registry.npmmirror.com/typescript/4.4.3
     devDependencies:
       '@types/fs-extra': registry.npmmirror.com/@types/fs-extra/9.0.13
@@ -46,6 +49,7 @@ importers:
       '@types/node': registry.npmmirror.com/@types/node/16.10.3
       '@types/prismjs': registry.npmmirror.com/@types/prismjs/1.16.6
       '@types/rimraf': registry.npmmirror.com/@types/rimraf/3.0.2
+      '@types/serialize-javascript': registry.npmmirror.com/@types/serialize-javascript/5.0.1
       tsup: registry.npmmirror.com/tsup/5.4.0_typescript@4.4.3
       vite: registry.npmmirror.com/vite/2.6.5
 
@@ -465,6 +469,14 @@ packages:
     version: 2.3.0
     engines: {node: '>=8.6'}
 
+  registry.nlark.com/randombytes/2.1.0:
+    resolution: {integrity: sha1-32+ENy8CcNxlzfYpE0mrekc9Tyo=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/randombytes/download/randombytes-2.1.0.tgz}
+    name: randombytes
+    version: 2.1.0
+    dependencies:
+      safe-buffer: registry.nlark.com/safe-buffer/5.2.1
+    dev: false
+
   registry.nlark.com/resolve-from/5.0.0:
     resolution: {integrity: sha1-w1IlhD3493bfIcV1V7wIfp39/Gk=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/resolve-from/download/resolve-from-5.0.0.tgz}
     name: resolve-from
@@ -493,6 +505,20 @@ packages:
     version: 1.2.0
     dependencies:
       queue-microtask: registry.npmmirror.com/queue-microtask/1.2.3
+
+  registry.nlark.com/safe-buffer/5.2.1:
+    resolution: {integrity: sha1-Hq+fqb2x/dTsdfWPnNtOa3gn7sY=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/safe-buffer/download/safe-buffer-5.2.1.tgz}
+    name: safe-buffer
+    version: 5.2.1
+    dev: false
+
+  registry.nlark.com/serialize-javascript/6.0.0:
+    resolution: {integrity: sha1-765diPRdeSQUHai1w6en5mP+/rg=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/serialize-javascript/download/serialize-javascript-6.0.0.tgz}
+    name: serialize-javascript
+    version: 6.0.0
+    dependencies:
+      randombytes: registry.nlark.com/randombytes/2.1.0
+    dev: false
 
   registry.nlark.com/shebang-command/2.0.0:
     resolution: {integrity: sha1-zNCvT4g1+9wmW4JGGq8MNmY/NOo=, registry: https://registry.npm.taobao.org/, tarball: https://registry.nlark.com/shebang-command/download/shebang-command-2.0.0.tgz}
@@ -781,6 +807,12 @@ packages:
     dependencies:
       '@types/glob': registry.npmmirror.com/@types/glob/7.1.4
       '@types/node': registry.npmmirror.com/@types/node/16.10.3
+    dev: true
+
+  registry.npmmirror.com/@types/serialize-javascript/5.0.1:
+    resolution: {integrity: sha1-LDLgYmc0oCqDuUy5JGmcS9y2/ZQ=, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/serialize-javascript/download/@types/serialize-javascript-5.0.1.tgz}
+    name: '@types/serialize-javascript'
+    version: 5.0.1
     dev: true
 
   registry.npmmirror.com/@types/throttle-debounce/2.1.0:
