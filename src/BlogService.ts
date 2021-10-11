@@ -29,7 +29,7 @@ class CacheCore {
     return this.#cache
   }
 
-  transformResult: Record<string, string | undefined> = {}
+  #transformResult: Record<string, string | undefined> = {}
 
   constructor(public readonly config: string) {}
 
@@ -38,7 +38,7 @@ class CacheCore {
 
     const text = serialize({
       cache: this.#cache,
-      transform: this.transformResult,
+      transform: this.#transformResult,
     })
 
     await fs.writeFile(this.config, text)
@@ -60,7 +60,21 @@ class CacheCore {
     const data = deserialize(content)
 
     this.#cache = data.cache
-    this.transformResult = data.transform
+    this.#transformResult = data.transform
+  }
+
+  hasTransformed(fileCtx: CurrentFileContext) {
+    const hash = md5(fileCtx.file + fileCtx.outFile)
+    const hit = this.#transformResult[hash]
+
+    return hit
+  }
+
+  setTransformedCache(fileCtx: CurrentFileContext, code: string) {
+    const hash = md5(fileCtx.file + fileCtx.outFile)
+    this.#transformResult[hash] = code
+
+    this.#save()
   }
 
   async read(path: string): Promise<MDFileInfo> {
@@ -193,15 +207,8 @@ export class BlogService {
     }
   }
 
-  hasTransformed(fileCtx: CurrentFileContext) {
-    const hash = md5(fileCtx.file + fileCtx.outFile)
-    const hit = this.cache.transformResult[hash]
-
-    return hit
-  }
-
   async transformMarkdown(info: MDFileInfo, ctx: CurrentFileContext) {
-    const hit = this.hasTransformed(ctx)
+    const hit = this.cache.hasTransformed(ctx)
 
     if (hit) {
       return hit
@@ -221,7 +228,11 @@ export class BlogService {
 
     const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
 
-    return sfc.join('\n')
+    const transformResult = sfc.join('\n')
+
+    this.cache.setTransformedCache(ctx, transformResult)
+
+    return transformResult
   }
 
   /**
@@ -243,7 +254,7 @@ export class BlogService {
   async transformFile(fileContext: CurrentFileContext) {
     const content = await this.cache.read(fileContext.file)
 
-    if (this.hasTransformed(fileContext)) {
+    if (this.cache.hasTransformed(fileContext)) {
       return
     }
 
