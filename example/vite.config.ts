@@ -45,12 +45,9 @@ export default defineConfig({
     }),
 
     createBlogPlugin({
-      pluginOpt: {
-        changeTag: {
-          map: {
-            a: 'v-link',
-          },
-        },
+      changeTagMap: {
+        a: 'v-link',
+        audio: 'v-audio',
       },
       async onAfterBuild(ctx) {
         await ctx.generateImportAll({
