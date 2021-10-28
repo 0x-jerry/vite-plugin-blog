@@ -232,7 +232,10 @@ export class BlogService {
       await plugin.beforeWriteHtml?.call(this, $html, ctx, info)
     }
 
-    const html = $html.window.document.body.innerHTML
+    let html = $html.window.document.body.innerHTML
+
+    // fix anchor
+    html = html.replace(/href="about:blank/g, 'href="')
 
     const sfc = [`<template>${html}</template>`, result.script, ...result.blocks]
 
