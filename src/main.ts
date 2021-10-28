@@ -15,6 +15,11 @@ export type BlogPluginConfig = Omit<BlogServiceConfig, 'watch'> & {
   postHrefPrefix?: string
 
   onAfterBuild?(ctx: BlogService): Promise<void> | void
+
+  /**
+   * @default false
+   */
+  debug?: boolean
 }
 
 export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOption {

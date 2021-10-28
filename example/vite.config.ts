@@ -55,6 +55,7 @@ export default defineConfig({
           filename: 'notes.ts',
         })
       },
+      debug: true,
     }),
   ],
 

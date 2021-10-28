@@ -1,12 +1,14 @@
 import marked from 'marked'
 import { MDFileInfo } from './BlogService'
+import { anchorExt } from './marked/anchor'
 import { highlightExt } from './marked/highlight'
 
 function initMarked() {
   marked.use(
     highlightExt({
       defaultLanguage: 'markup',
-    })
+    }),
+    anchorExt()
   )
 }
 

@@ -31,7 +31,7 @@ class CacheCore {
 
   #transformResult: Record<string, string | undefined> = {}
 
-  constructor(public readonly config: string) {}
+  constructor(public readonly config: string, public readonly disable: boolean = false) {}
 
   #save = debounce(async () => {
     await fs.ensureFile(this.config)
@@ -64,6 +64,8 @@ class CacheCore {
   }
 
   hasTransformed(fileCtx: CurrentFileContext, info: MDFileInfo) {
+    if (this.disable) return
+
     const hash = md5(fileCtx.file + fileCtx.outFile + JSON.stringify(info))
     const hit = this.#transformResult[hash]
 
@@ -114,6 +116,11 @@ class CacheCore {
 }
 
 export interface BlogServiceConfig {
+  /**
+   * @default false
+   */
+  debug: boolean
+
   postsDir: string
 
   /**
@@ -149,6 +156,8 @@ export class BlogService {
 
   readonly command: 'build' | 'serve'
 
+  readonly debug: boolean
+
   md2vue: Md2Vue
 
   cache: CacheCore
@@ -157,6 +166,7 @@ export class BlogService {
 
   constructor(conf: Partial<BlogServiceConfig>) {
     this.postsDir = conf.postsDir ?? 'posts'
+    this.debug = conf.debug ?? false
 
     this.globPattern = [this.postsDir + '/**/*.md']
 
@@ -170,7 +180,7 @@ export class BlogService {
     this.command = conf.command || 'build'
     this.transform = conf.transform
 
-    this.cache = new CacheCore(path.join(this.outDir, '.cache'))
+    this.cache = new CacheCore(path.join(this.outDir, '.cache'), this.debug)
   }
 
   async init() {
