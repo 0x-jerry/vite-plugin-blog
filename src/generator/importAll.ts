@@ -5,6 +5,7 @@ import { CurrentFileContext } from '../types'
 import { BlogService, MDFileInfo } from '../BlogService'
 import chokidar from 'chokidar'
 import debounce from 'lodash/debounce'
+import { v4 as uuid } from 'uuid'
 
 export type SortInfoFn = (infos: FileInfo[]) => FileInfo[]
 
@@ -82,7 +83,9 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
         ${infos
           .map((v, idx) => {
             const data = JSON.stringify(v.matter || {}, null, 2)
+
             return `{
+              uuid: ${JSON.stringify(uuid())},
               data: ${data},
               module: Comp${idx},
             }`
