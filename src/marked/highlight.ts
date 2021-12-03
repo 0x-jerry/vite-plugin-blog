@@ -18,7 +18,9 @@ export async function highlightExt(
       code(this: Renderer, text, langAttr = '') {
         const [lang, lines] = langAttr.trim().split(/\s+/)
 
-        const langToUse = lang || opt.defaultLang
+        const langToUse = highlighter.getLoadedLanguages().includes(lang as Lang)
+          ? lang
+          : opt.defaultLang
 
         const result = highlighter.codeToHtml(text, langToUse)
 
