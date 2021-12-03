@@ -1,5 +1,6 @@
 import { MarkedExtension } from 'marked'
 import { Lang, getHighlighter, Theme } from 'shiki'
+import { toArray } from '../utils'
 
 export interface HighlightExtOption {
   defaultLang: Lang
@@ -7,10 +8,29 @@ export interface HighlightExtOption {
   theme: Theme
 }
 
+const langAlias: Record<string, string | string[]> = {
+  docker: 'dockerfile',
+  yaml: 'yml',
+}
+
 export async function highlightExt(
   opt: Partial<HighlightExtOption> = {}
 ): Promise<MarkedExtension> {
   const highlighter = await getHighlighter({ theme: opt.theme || 'solarized-light' })
+
+  function normalizeLang(langToTrans: string) {
+    langToTrans = langToTrans.toLocaleLowerCase()
+
+    for (const lang in langAlias) {
+      const alias = toArray(langAlias[lang])
+
+      if (alias.includes(langToTrans)) return lang
+    }
+
+    return highlighter.getLoadedLanguages().includes(langToTrans as Lang)
+      ? langToTrans
+      : opt.defaultLang
+  }
 
   return {
     renderer: {
@@ -18,9 +38,7 @@ export async function highlightExt(
       code(this: Renderer, text, langAttr = '') {
         const [lang, lines] = langAttr.trim().split(/\s+/)
 
-        const langToUse = highlighter.getLoadedLanguages().includes(lang as Lang)
-          ? lang
-          : opt.defaultLang
+        const langToUse = normalizeLang(lang)
 
         const result = highlighter.codeToHtml(text, langToUse)
 

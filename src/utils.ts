@@ -15,3 +15,7 @@ export function sleep(ts: number) {
     setTimeout(resolve, ts)
   })
 }
+
+export function toArray<T>(o: T | T[]): T[] {
+  return Array.isArray(o) ? o : [o]
+}
