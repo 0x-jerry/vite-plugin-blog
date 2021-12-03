@@ -5,7 +5,7 @@ import chokidar from 'chokidar'
 import matter from 'gray-matter'
 import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext } from './types'
-import { createMd2Vue, Md2Vue, MdRenderOption } from './md2vue'
+import { createMd2Vue, MarkedPluginOption, Md2Vue, MdRenderOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
 import debounce from 'lodash/debounce'
 import serialize from 'serialize-javascript'
@@ -141,6 +141,8 @@ export interface BlogServiceConfig {
     before?(info: MDFileInfo): MdRenderOption
     // after?(result: Md2VueResult): Promise<Md2VueResult> | Md2VueResult
   }
+
+  markedPluginOption: Partial<MarkedPluginOption>
 }
 
 export class BlogService {
@@ -158,13 +160,13 @@ export class BlogService {
 
   readonly debug: boolean
 
-  md2vue: Md2Vue
+  md2vue!: Md2Vue
 
   cache: CacheCore
 
   transform?: BlogServiceConfig['transform']
 
-  constructor(conf: Partial<BlogServiceConfig>) {
+  constructor(private conf: Partial<BlogServiceConfig>) {
     this.postsDir = conf.postsDir ?? 'posts'
     this.debug = conf.debug ?? false
 
@@ -175,8 +177,6 @@ export class BlogService {
     this.root = conf.root ?? process.cwd()
     this.outDir = path.join(this.root, conf.out ?? '.blog')
 
-    this.md2vue = createMd2Vue()
-
     this.command = conf.command || 'build'
     this.transform = conf.transform
 
@@ -184,6 +184,7 @@ export class BlogService {
   }
 
   async init() {
+    this.md2vue = await createMd2Vue(this.conf.markedPluginOption)
     await this.cache.init()
   }
 

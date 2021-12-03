@@ -56,6 +56,11 @@ export default defineConfig({
         })
       },
       debug: true,
+      markedPluginOption: {
+        highlight: {
+          theme: 'solarized-light',
+        },
+      },
     }),
   ],
 

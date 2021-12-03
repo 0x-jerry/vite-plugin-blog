@@ -1,19 +1,29 @@
 import marked from 'marked'
 import { MDFileInfo } from './BlogService'
 import { anchorExt } from './marked/anchor'
-import { highlightExt } from './marked/highlight'
+import { highlightExt, HighlightExtOption } from './marked/highlight'
 
-function initMarked() {
+export interface MarkedPluginOption {
+  highlight: Partial<HighlightExtOption>
+}
+
+async function initMarked(opt: Partial<MarkedPluginOption> = {}) {
   marked.use(
-    highlightExt({
-      defaultLanguage: 'markup',
-    }),
+    await highlightExt(
+      Object.assign(
+        {
+          defaultLang: 'ini',
+          highlightLines: true,
+        },
+        opt.highlight
+      )
+    ),
     anchorExt()
   )
 }
 
-export function createMd2Vue() {
-  initMarked()
+export async function createMd2Vue(opt: Partial<MarkedPluginOption> = {}) {
+  await initMarked(opt)
 
   return md2vue
 }
