@@ -82,5 +82,5 @@ function highlightLines(rawCode: string, lines: string, langClass: string, code:
 
   const highlightLinesWrapperCode = `<div class="${langClass} highlight-lines">${highlightLinesCode}</div>`
 
-  return `<div class="code">${highlightLinesWrapperCode}${code}</div>`
+  return `<div class="code-highlight-lines">${highlightLinesWrapperCode}${code}</div>`
 }
