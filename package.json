@@ -22,7 +22,8 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "dev": "tsup src/main.ts --watch src",
-    "build": "tsup src/main.ts"
+    "build": "tsup src/main.ts",
+    "release": "x-release"
   },
   "peerDependencies": {
     "vite": "*"
@@ -44,6 +45,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@0x-jerry/x-release": "^0.3.2",
     "@types/fs-extra": "^9.0.13",
     "@types/jsdom": "^16.2.13",
     "@types/lodash": "^4.14.176",
