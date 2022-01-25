@@ -20,7 +20,6 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "prepublishOnly": "npm run build",
     "dev": "tsup src/main.ts --watch src",
     "build": "tsup src/main.ts",
     "release": "x-release"
