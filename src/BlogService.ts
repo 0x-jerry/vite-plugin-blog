@@ -125,11 +125,18 @@ export class BlogService {
       return hit
     }
 
-    const before = this.transform?.before
+    const opt = this.transform?.before?.(info)
 
-    const opt = before ? await before(info) : info
-
-    const result = this.md2vue(info, opt)
+    const result = this.md2vue(
+      info,
+      Object.assign(
+        {
+          wrapper: 'div',
+          extra: info.extra,
+        },
+        opt
+      )
+    )
 
     const $html = new JSDOM(result.html)
 
