@@ -41,7 +41,7 @@ export interface MDFileInfo<T = any> {
 
 export type GetMarkdownExtraData = (
   info: Omit<MDFileInfo, 'extra'>
-) => MayPromise<Record<string, any>>
+) => MayPromise<Record<string, any> | undefined>
 
 export class CacheCore {
   #cache: Record<string, MDFileInfo> = {}
@@ -129,7 +129,7 @@ export class CacheCore {
       excerpt: excerpt,
     }
 
-    const extra = getExtra ? await getExtra(basicInfo) : {}
+    const extra = (await getExtra?.(basicInfo)) || {}
 
     const info: MDFileInfo = {
       ...basicInfo,

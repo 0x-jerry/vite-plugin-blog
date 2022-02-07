@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom'
 import { BlogPlugin, CurrentFileContext, MayPromise } from './types'
 import { createMd2Vue, Md2Vue, MdRenderOption, MarkedPluginOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
-import { MDFileInfo, CacheCore } from './CacheCore'
+import { MDFileInfo, CacheCore, GetMarkdownExtraData } from './CacheCore'
 
 export interface BlogServiceConfig {
   /**
@@ -35,13 +35,13 @@ export interface BlogServiceConfig {
      * after read markdown file
      * @param info
      */
-    afterRead?(info: Omit<MDFileInfo, 'extra'>): MayPromise<Record<string, any>>
+    afterRead?: GetMarkdownExtraData
 
     /**
      * before transform markdown file
      * @param info
      */
-    before?(info: MDFileInfo): MayPromise<MdRenderOption>
+    before?(info: MDFileInfo): MayPromise<MdRenderOption | undefined>
   }
 
   markedPluginOption: Partial<MarkedPluginOption>
@@ -125,18 +125,12 @@ export class BlogService {
       return hit
     }
 
-    const opt = this.transform?.before?.(info)
+    const opt = await this.transform?.before?.(info)
 
-    const result = this.md2vue(
-      info,
-      Object.assign(
-        {
-          wrapper: 'div',
-          extra: info.extra,
-        },
-        opt
-      )
-    )
+    const result = this.md2vue(info, {
+      wrapper: opt?.wrapper,
+      extra: Object.assign(info.extra, opt?.extra),
+    })
 
     const $html = new JSDOM(result.html)
 
