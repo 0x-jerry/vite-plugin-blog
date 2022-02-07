@@ -55,6 +55,13 @@ export default defineConfig({
           filename: 'notes.ts',
         })
       },
+      transform: {
+        afterRead() {
+          return {
+            test: 1,
+          }
+        },
+      },
       debug: true,
       markedPluginOption: {
         highlight: {

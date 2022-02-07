@@ -2,7 +2,8 @@ import fs from 'fs-extra'
 import glob from 'fast-glob'
 import path from 'path'
 import { CurrentFileContext } from '../types'
-import { BlogService, MDFileInfo } from '../BlogService'
+import { BlogService } from '../BlogService'
+import { MDFileInfo } from '../CacheCore'
 import chokidar from 'chokidar'
 import debounce from 'lodash/debounce'
 import { v4 as uuid } from 'uuid'
@@ -23,7 +24,8 @@ export interface ImportAllOption {
   ) => Promise<string> | string
 }
 
-const sortFn: SortInfoFn = (infos) => infos.sort((a, b) => b.matter?.date - a.matter?.date)
+const sortFn: SortInfoFn = (infos) =>
+  infos.sort((a, b) => b.info.matter?.date - a.info.matter?.date)
 
 export async function importAll(ctx: BlogService, opt: ImportAllOption) {
   const {
@@ -45,11 +47,13 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
       outFile: path.join(outDirPath, file.replace(/\.md$/, '.vue')),
     }
 
-    const info = await (opt.read ? opt.read(fileContext, ctx) : ctx.cache.read(fileContext.file))
+    const info = await (opt.read
+      ? opt.read(fileContext, ctx)
+      : ctx.cache.read(fileContext.file, ctx.transform?.afterRead))
 
     allFilesInfo.set(fileContext.outFile, {
       path: fileContext.outFile,
-      matter: info.matter,
+      info,
     })
 
     if (opt.transform) {
@@ -82,11 +86,13 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
       export const modules = [
         ${infos
           .map((v, idx) => {
-            const data = JSON.stringify(v.matter || {}, null, 2)
+            const data = JSON.stringify(v.info.matter || {}, null, 2)
+            const extra = JSON.stringify(v.info.extra || {}, null, 2)
 
             return `{
               uuid: ${JSON.stringify(uuid())},
               data: ${data},
+              extra: ${extra},
               module: Comp${idx},
             }`
           })
@@ -129,7 +135,7 @@ export async function importAll(ctx: BlogService, opt: ImportAllOption) {
   }
 }
 
-export interface FileInfo {
+interface FileInfo {
   path: string
-  matter?: any
+  info: MDFileInfo
 }

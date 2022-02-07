@@ -2,118 +2,11 @@ import fs from 'fs-extra'
 import glob from 'fast-glob'
 import path from 'path'
 import chokidar from 'chokidar'
-import matter from 'gray-matter'
 import { JSDOM } from 'jsdom'
-import { BlogPlugin, CurrentFileContext } from './types'
-import { createMd2Vue, MarkedPluginOption, Md2Vue, MdRenderOption } from './md2vue'
+import { BlogPlugin, CurrentFileContext, MayPromise } from './types'
+import { createMd2Vue, Md2Vue, MdRenderOption, MarkedPluginOption } from './md2vue'
 import { ImportAllOption, importAll } from './generator/importAll'
-import debounce from 'lodash/debounce'
-import serialize from 'serialize-javascript'
-import md5 from 'md5'
-
-export interface MDFileInfo<T = any> {
-  path: string
-  matter: T
-  mtime: Date
-
-  content: string
-  excerpt: string
-
-  type?: 'excerpt'
-}
-
-class CacheCore {
-  #cache: Record<string, MDFileInfo> = {}
-
-  get cacheData() {
-    return this.#cache
-  }
-
-  #transformResult: Record<string, string | undefined> = {}
-
-  constructor(public readonly config: string, public readonly disable: boolean = false) {}
-
-  #save = debounce(async () => {
-    await fs.ensureFile(this.config)
-
-    const text = serialize({
-      cache: this.#cache,
-      transform: this.#transformResult,
-    })
-
-    await fs.writeFile(this.config, text)
-  }, 100)
-
-  async init() {
-    if (!(await fs.pathExists(this.config))) {
-      return
-    }
-
-    const content = await fs.readFile(this.config, {
-      encoding: 'utf-8',
-    })
-
-    function deserialize(serializedJavascript: string) {
-      return (0, eval)('(' + serializedJavascript + ')')
-    }
-
-    const data = deserialize(content)
-
-    this.#cache = data.cache
-    this.#transformResult = data.transform
-  }
-
-  hasTransformed(fileCtx: CurrentFileContext, info: MDFileInfo) {
-    if (this.disable) return
-
-    const hash = md5(fileCtx.file + fileCtx.outFile + JSON.stringify(info))
-    const hit = this.#transformResult[hash]
-
-    return hit
-  }
-
-  setTransformedCache(fileCtx: CurrentFileContext, info: MDFileInfo, code: string) {
-    const hash = md5(fileCtx.file + fileCtx.outFile + JSON.stringify(info))
-    this.#transformResult[hash] = code
-
-    this.#save()
-  }
-
-  async read(path: string): Promise<MDFileInfo> {
-    const hit = this.#cache[path]
-
-    const stat = await fs.stat(path)
-
-    if (stat.mtime.getTime() === hit?.mtime.getTime()) {
-      return hit
-    }
-
-    const content = await fs.readFile(path, { encoding: 'utf-8' })
-
-    const frontmatter = matter(content, {
-      excerpt_separator: '<!-- more -->',
-    })
-
-    const footLinksReg = /^\[[^\^][^\]]*\]\:.+$/gm
-    const links = frontmatter.content.match(footLinksReg) || []
-
-    const excerpt = [frontmatter.excerpt, links.join('\n')].filter(Boolean).join('\n')
-
-    const info: MDFileInfo = {
-      path: path,
-      mtime: stat.mtime,
-
-      matter: frontmatter.data,
-      content: frontmatter.content,
-      excerpt: excerpt,
-    }
-
-    this.#cache[path] = info
-
-    this.#save()
-    return info
-  }
-}
+import { MDFileInfo, CacheCore } from './CacheCore'
 
 export interface BlogServiceConfig {
   /**
@@ -138,8 +31,17 @@ export interface BlogServiceConfig {
   command: 'build' | 'serve'
 
   transform: {
-    before?(info: MDFileInfo): MdRenderOption
-    // after?(result: Md2VueResult): Promise<Md2VueResult> | Md2VueResult
+    /**
+     * after read markdown file
+     * @param info
+     */
+    afterRead?(info: Omit<MDFileInfo, 'extra'>): MayPromise<Record<string, any>>
+
+    /**
+     * before transform markdown file
+     * @param info
+     */
+    before?(info: MDFileInfo): MayPromise<MdRenderOption>
   }
 
   markedPluginOption: Partial<MarkedPluginOption>
@@ -223,7 +125,9 @@ export class BlogService {
       return hit
     }
 
-    const opt = this.transform?.before?.(info)
+    const before = this.transform?.before
+
+    const opt = before ? await before(info) : info
 
     const result = this.md2vue(info, opt)
 
@@ -264,7 +168,7 @@ export class BlogService {
   }
 
   async transformFile(fileContext: CurrentFileContext) {
-    const content = await this.cache.read(fileContext.file)
+    const content = await this.cache.read(fileContext.file, this.transform?.afterRead)
 
     if (this.cache.hasTransformed(fileContext, content)) {
       return

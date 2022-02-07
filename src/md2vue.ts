@@ -1,5 +1,5 @@
 import marked from 'marked'
-import { MDFileInfo } from './BlogService'
+import { MDFileInfo } from './CacheCore'
 import { anchorExt } from './marked/anchor'
 import { highlightExt, HighlightExtOption } from './marked/highlight'
 

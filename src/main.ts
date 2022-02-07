@@ -66,7 +66,7 @@ export function createBlogPlugin(opt: Partial<BlogPluginConfig> = {}): PluginOpt
       filePattern: ctx.postsDir + '/**/*.md',
       dir: 'excerpts',
       async read(fileCtx, ctx) {
-        const info = await ctx.cache.read(fileCtx.file)
+        const info = await ctx.cache.read(fileCtx.file, ctx.transform?.afterRead)
 
         return {
           ...info,

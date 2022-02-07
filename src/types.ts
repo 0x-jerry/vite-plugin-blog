@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom'
-import { BlogService, MDFileInfo } from './BlogService'
+import { BlogService } from './BlogService'
+import { MDFileInfo } from './CacheCore'
 
 export interface BlogServicePlugin {
   beforeWriteHtml(
@@ -22,3 +23,5 @@ export interface CurrentFileContext {
    */
   outFile: string
 }
+
+export type MayPromise<T> = Promise<T> | T

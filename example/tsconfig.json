@@ -19,5 +19,5 @@
       "~blog/*": [".blog/*"]
     }
   },
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules", ".blog"]
 }
