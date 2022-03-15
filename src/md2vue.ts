@@ -1,4 +1,4 @@
-import marked from 'marked'
+import { marked } from 'marked'
 import { MDFileInfo } from './CacheCore'
 import { anchorExt } from './marked/anchor'
 import { highlightExt, HighlightExtOption } from './marked/highlight'
@@ -40,7 +40,7 @@ export type Md2VueResult = ReturnType<Md2Vue>
 function md2vue(info: MDFileInfo, opt: MdRenderOption = {}) {
   const layout = info.matter?.layout
 
-  let rendered = marked(info.content)
+  let rendered = marked.parse(info.content)
 
   const tag = opt.wrapper || 'div'
   rendered = `<${tag} v-bind="frontmatter">${rendered}</${tag}>`
