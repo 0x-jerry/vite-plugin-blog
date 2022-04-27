@@ -14,9 +14,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    Vue({
-      include: [/\.vue$/],
-    }),
+    Vue(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
