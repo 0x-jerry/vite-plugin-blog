@@ -106,7 +106,7 @@ export default defineConfig({
 
 ## 贡献
 
-任何形式的贡献都欢迎。
+欢迎任何形式的贡献。
 
 [hexo-layout]: https://hexo.io/docs/front-matter#Settings-amp-Their-Default-Values
 [vite-plugin-vue-layouts]: https://github.com/JohnCampionJr/vite-plugin-vue-layouts
