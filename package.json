@@ -2,7 +2,7 @@
   "name": "vite-plugin-blog",
   "version": "0.5.2",
   "main": "dist/main.js",
-  "typings": "src/main.ts",
+  "typings": "dist/main.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x-jerry/vite-plugin-blog.git"
@@ -13,15 +13,14 @@
   },
   "homepage": "https://github.com/0x-jerry/vite-plugin-blog#readme",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "dev": "tsup src/main.ts --watch src",
-    "build": "tsup src/main.ts",
+    "dev": "cd example && npm run dev",
+    "build": "tsup src/main.ts --dts",
     "release": "x-release"
   },
   "peerDependencies": {
