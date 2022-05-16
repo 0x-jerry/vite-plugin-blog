@@ -1,4 +1,4 @@
-import { MarkedExtension } from 'marked'
+import { marked } from 'marked'
 import { Lang, getHighlighter, Theme } from 'shiki'
 import { toArray } from '../utils'
 
@@ -15,7 +15,7 @@ const langAlias: Record<string, string | string[]> = {
 
 export async function highlightExt(
   opt: Partial<HighlightExtOption> = {}
-): Promise<MarkedExtension> {
+): Promise<marked.MarkedExtension> {
   const highlighter = await getHighlighter({ theme: opt.theme || 'solarized-light' })
 
   function normalizeLang(langToTrans: string) {

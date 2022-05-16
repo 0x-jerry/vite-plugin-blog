@@ -1,4 +1,4 @@
-import { MarkedExtension } from 'marked'
+import { marked } from 'marked'
 
 export interface AnchorOption {
   /**
@@ -7,7 +7,7 @@ export interface AnchorOption {
   symbol?: string
 }
 
-export function anchorExt({ symbol = '#' }: AnchorOption = {}): MarkedExtension {
+export function anchorExt({ symbol = '#' }: AnchorOption = {}): marked.MarkedExtension {
   return {
     renderer: {
       heading(text, level, raw, slugger) {
