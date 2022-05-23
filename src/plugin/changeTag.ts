@@ -9,7 +9,7 @@ export interface ChangeTagOption {
 }
 
 /**
- * 修正 md 链接
+ * 替换 markdown 中的插件 标签
  */
 export const changeTagPlugin = (opt: ChangeTagOption = {}): BlogPlugin => {
   return {

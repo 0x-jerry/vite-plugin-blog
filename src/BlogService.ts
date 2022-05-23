@@ -129,7 +129,7 @@ export class BlogService {
 
     const result = this.md2vue(info, {
       wrapper: opt?.wrapper,
-      extra: Object.assign(info.extra, opt?.extra),
+      extra: Object.assign({}, info.extra, opt?.extra),
     })
 
     const $html = new JSDOM(result.html)

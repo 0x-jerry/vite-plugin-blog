@@ -4,12 +4,12 @@ import Vue from '@vitejs/plugin-vue'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import Components from 'unplugin-vue-components/vite'
-import { createBlogPlugin } from 'vite-plugin-blog'
+import { createBlogPlugin } from '../src/main'
 
 export default defineConfig({
   resolve: {
     alias: {
-      '~/': `${path.resolve(__dirname, 'src')}/`,
+      '@/': `${path.resolve(__dirname, 'src')}/`,
       '~blog/': `${path.resolve(__dirname, '.blog')}/`,
     },
   },
@@ -33,12 +33,8 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-vue-components
     Components({
-      // allow auto load markdown components under `./src/components/`
       extensions: ['vue'],
-
-      // allow auto import and register components used in markdown
       include: [/\.vue$/, /\.vue\?vue/],
-
       dts: 'src/components.d.ts',
     }),
 
@@ -68,12 +64,6 @@ export default defineConfig({
       },
     }),
   ],
-
-  server: {
-    fs: {
-      strict: true,
-    },
-  },
 
   // https://github.com/antfu/vite-ssg
   // @ts-ignore
