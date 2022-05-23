@@ -2,7 +2,7 @@
   "name": "vite-plugin-blog",
   "version": "0.5.4",
   "main": "dist/main.js",
-  "typings": "src/main.d.ts",
+  "typings": "dist/main.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/0x-jerry/vite-plugin-blog.git"
